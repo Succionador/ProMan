@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>范工管理 - 第1章 建设工程项目组织、规划与控制</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #2d3748; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.top-bar { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+.top-bar h1 { font-size: 18px; color: #4a5568; margin-bottom: 2px; font-weight: 600; }
+.top-bar .section-tag { font-size: 13px; color: #805ad5; font-weight: 500; margin-bottom: 14px; padding: 3px 10px; background: rgba(128,90,213,0.08); border-radius: 6px; display: inline-block; }
+.stats-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.progress-info { flex: 1; min-width: 200px; }
+.progress-text { font-size: 14px; color: #718096; margin-bottom: 6px; }
+.progress-text span { font-weight: 700; color: #5a67d8; }
+.progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+.score-box { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; padding: 8px 18px; border-radius: 10px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.score-box .label { font-weight: 400; font-size: 13px; opacity: 0.9; }
+.jump-select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #4a5568; background: #f7fafc; cursor: pointer; outline: none; transition: border-color 0.2s; }
+.jump-select:focus { border-color: #667eea; }
+.question-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+.q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.q-badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: white; }
+.q-badge.single { background: linear-gradient(135deg, #48bb78, #38a169); }
+.q-badge.multi { background: linear-gradient(135deg, #4299e1, #3182ce); }
+.q-score { font-size: 12px; color: #a0aec0; }
+.q-number { font-size: 15px; font-weight: 700; color: #4a5568; margin-bottom: 14px; }
+.q-text { font-size: 16px; line-height: 1.75; color: #2d3748; margin-bottom: 20px; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+.option:hover { border-color: #a3bffa; background: #f7faff; }
+.option.selected { border-color: #5a67d8; background: #ebf4ff; }
+.option.correct { border-color: #48bb78; background: #f0fff4; }
+.option.wrong { border-color: #fc8181; background: #fff5f5; }
+.option.reveal-correct { border-color: #48bb78; background: #f0fff4; }
+.option.disabled { pointer-events: none; }
+.opt-label { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #cbd5e0; color: #718096; transition: all 0.2s; }
+.option.selected .opt-label { background: #5a67d8; color: white; border-color: #5a67d8; }
+.option.correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.option.wrong .opt-label { background: #fc8181; color: white; border-color: #fc8181; }
+.option.reveal-correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.opt-text { font-size: 15px; line-height: 1.6; padding-top: 2px; color: #4a5568; }
+.opt-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 14px; color: white; margin-left: auto; }
+.option.correct .opt-icon { display: flex; background: #48bb78; }
+.option.wrong .opt-icon { display: flex; background: #fc8181; }
+.explanation { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: #f7fafc; border-left: 4px solid #5a67d8; display: none; animation: fadeIn 0.3s ease; }
+.explanation.show { display: block; }
+.explanation .exp-title { font-size: 14px; font-weight: 700; color: #5a67d8; margin-bottom: 8px; }
+.explanation .exp-answer { font-size: 15px; color: #2d3748; margin-bottom: 6px; }
+.explanation .exp-answer span { font-weight: 700; }
+.explanation .exp-analysis { font-size: 14px; color: #2c5282; margin-top: 10px; line-height: 1.7; padding: 10px 14px; background: #ebf8ff; border-radius: 8px; border-left: 3px solid #4299e1; }
+.explanation .exp-analysis .ea-title { font-weight: 700; color: #2b6cb0; }
+.explanation .exp-memory { font-size: 14px; color: #744210; margin-top: 12px; line-height: 1.7; padding: 10px 14px; background: #fffff0; border-radius: 8px; border-left: 3px solid #d69e2e; }
+.explanation .exp-memory .em-title { font-weight: 700; color: #975a16; }
+.btn-area { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+.btn { padding: 12px 32px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: #fff; color: #e53e3e; border: 2px solid #fed7d7; }
+.btn-secondary:hover { background: #fff5f5; border-color: #fc8181; }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.finish-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 48px 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; display: none; }
+.finish-card.show { display: block; }
+.finish-card .trophy { font-size: 64px; margin-bottom: 16px; }
+.finish-card h2 { font-size: 24px; color: #2d3748; margin-bottom: 8px; }
+.finish-card .final-score { font-size: 48px; font-weight: 800; color: #5a67d8; margin: 16px 0; }
+.finish-card .final-detail { font-size: 14px; color: #718096; margin-bottom: 24px; line-height: 1.8; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; }
+.modal h3 { font-size: 18px; color: #2d3748; margin-bottom: 16px; }
+.modal textarea { width: 100%; height: 120px; border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
+.modal textarea:focus { border-color: #667eea; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.modal-btns .btn { padding: 10px 24px; font-size: 14px; }
+.review-modal { background: white; border-radius: 16px; padding: 0; width: 92%; max-width: 600px; max-height: 80vh; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; display: flex; flex-direction: column; overflow: hidden; }
+.review-modal .review-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.review-modal .review-header h3 { margin-bottom: 0; font-size: 18px; color: #e53e3e; }
+.review-modal .review-close { width: 32px; height: 32px; border: none; background: #f7fafc; border-radius: 50%; font-size: 18px; cursor: pointer; color: #718096; display: flex; align-items: center; justify-content: center; }
+.review-modal .review-close:hover { background: #edf2f7; }
+.review-modal .review-list { padding: 16px 24px 24px; overflow-y: auto; flex: 1; }
+.review-item { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.review-item:last-child { margin-bottom: 0; }
+.review-item .ri-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.review-item .ri-row { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+.review-item .ri-user { color: #e53e3e; }
+.review-item .ri-correct { color: #38a169; }
+.review-empty { text-align: center; padding: 40px 20px; color: #38a169; font-size: 18px; }
+.fb-item { background: #fffff0; border: 1px solid #fefcbf; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.fb-item:last-child { margin-bottom: 0; }
+.fb-item .fb-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.fb-item .fb-content { font-size: 13px; color: #c05621; background: rgba(237, 137, 54, 0.08); padding: 10px 14px; border-radius: 8px; line-height: 1.6; }
+.password-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 999; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+.password-overlay.hidden { opacity: 0; pointer-events: none; }
+.password-card { background: white; border-radius: 20px; padding: 40px 36px; width: 90%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+.password-card .lock-icon { font-size: 48px; margin-bottom: 16px; }
+.password-card h2 { font-size: 20px; color: #2d3748; margin-bottom: 6px; }
+.password-card p { font-size: 14px; color: #a0aec0; margin-bottom: 24px; }
+.password-card input { width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; text-align: center; letter-spacing: 4px; outline: none; transition: border-color 0.2s; }
+.password-card input:focus { border-color: #667eea; }
+.password-card .pw-error { color: #e53e3e; font-size: 13px; margin-top: 10px; min-height: 20px; }
+.password-card .pw-btn { margin-top: 16px; width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.password-card .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(102,126,234,0.4); }
+.password-card .pw-btn:active { transform: translateY(0); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+</style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<body>
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-card">
+    <div class="lock-icon">🔒</div>
+    <h2>请输入访问密码</h2>
+    <p>本页面仅限授权用户使用</p>
+    <input type="password" id="pwInput" placeholder="请输入密码" autocomplete="off">
+    <div class="pw-error" id="pwError"></div>
+    <button class="pw-btn" id="pwBtn">进 入</button>
+  </div>
+</div>
+<div class="container">
+  <div class="top-bar">
+    <h1>📚 第1章 建设工程项目组织、规划与控制</h1>
+    <div class="section-tag" id="sectionTag"></div>
+    <div class="stats-row">
+      <div class="progress-info">
+        <div class="progress-text">做题进度：<span id="currentNum">1</span> / <span id="totalNum">125</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+      </div>
+      <div class="score-box"><span class="label">得分</span><span id="scoreDisplay">0</span></div>
+      <select class="jump-select" id="jumpSelect" title="跳转到指定题目"></select>
+    </div>
+  </div>
+  <div class="question-card" id="questionCard">
+    <div class="q-header">
+      <span class="q-badge" id="qBadge">单选题</span>
+      <span class="q-score" id="qScoreText"></span>
+    </div>
+    <div class="q-number" id="qNumber"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="explanation" id="explanation">
+      <div class="exp-title">📝 解析</div>
+      <div class="exp-answer" id="expAnswer"></div>
+      <div class="exp-analysis" id="expAnalysis"></div>
+      <div class="exp-memory" id="expMemory"></div>
+    </div>
+    <div class="btn-area">
+      <button class="btn btn-secondary" id="feedbackBtn" style="display:none" onclick="openFeedback()">⚠️ 题目/答案反馈</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="confirmAnswer()">确定</button>
+    </div>
+  </div>
+  <div class="finish-card" id="finishCard">
+    <div class="trophy">🎉</div>
+    <h2>练习完成！</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-detail" id="finalDetail"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="reviewBtn" onclick="openReview()" style="margin:0">❌ 查看错题</button>
+      <button class="btn btn-secondary" id="feedbackSummaryBtn" onclick="openFeedbackSummary()" style="margin:0;display:none">⚠️ 反馈汇总</button>
+      <button class="btn btn-primary" onclick="resetQuiz()" style="margin:0">🔄 重新做题</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal">
+    <h3>⚠️ 题目/答案反馈</h3>
+    <p style="font-size:14px;color:#718096;margin-bottom:12px;">请描述您认为有误的题目或答案，我们会尽快核实修正。</p>
+    <textarea id="feedbackText" placeholder="请输入您发现的问题..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeFeedback()">取消</button>
+      <button class="btn btn-primary" onclick="submitFeedback()">提交</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="reviewModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>❌ 错题汇总</h3>
+      <button class="review-close" onclick="closeReview()">✕</button>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackSummaryModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>⚠️ 反馈汇总</h3>
+      <button class="review-close" onclick="closeFeedbackSummary()">✕</button>
+    </div>
+    <div class="review-list" id="feedbackSummaryList"></div>
+  </div>
+</div>
+<script>
+const questions = [
+  {type:'single',question:'下列选项中，（）属于施工单位的预防成本。',options:['新工艺鉴定费', '施工图纸审查费', '外购件检验试验费', '工序检验费'],answer:[0],analysis:'选项B、C、D属于鉴定成本。预防成本包括质量规划费、工序控制费、新工艺鉴定费、质量培训费、质量信息费等。',memory:'【口诀】"成本管理：计划控制核算分析考核"——成本管理环节。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'质量成本分为控制成本和损失成本，下列选项中（）属于外部损失成本。',options:['返工损失费', '停工损失费', '工程保修费', '质量事故处理费'],answer:[2],analysis:'选项A、B、D是在施工过程中发生的损失费，属于内部损失成本。外部损失成本是指使用过程中发生的损失，如工程保修费、损失赔偿费。',memory:'【口诀】"成本计划：货币形式成本计划"——成本计划定义。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'（）是工程项目成本控制和考核的基本依据。',options:['控制成本', '计划成本', '损失成本', '质量成本'],answer:[1],analysis:'工程项目的计划成本是成本控制和考核的基本依据。',memory:'【口诀】"成本控制：控制在计划范围内"——成本控制定义。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'在一般情况下，关于工期成本的说法，正确的是（）。',options:['直接成本会随着工期缩短而增加，间接成本会随着工期缩短而减少', '直接成本会随着工期缩短而减少，间接成本会随着工期缩短而增加', '直接成本、间接成本会随着工期缩短而减少', '直接成本、间接成本会随着工期缩短而增加'],answer:[0],analysis:'在一般情况下，缩短工期，单位时间内增加人、材、机费用的投入，所以直接成本会随着工期缩短而增加；工期缩短，间接成本会减少。',memory:'【口诀】"成本核算：实际发生费用计算"——成本核算定义。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'（）是决策之后影响工程成本最重要的阶段。',options:['勘察', '设计', '施工', '保修'],answer:[1],analysis:'决策阶段和设计阶段是影响工程成本最大的阶段，决策之后最重要的是设计阶段。',memory:'【口诀】"成本分析：分析变动因素"——成本分析定义。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'在工程施工阶段影响工程成本的诸多因素中，影响施工机具设备成本的因素不包括（）。',options:['租赁成本', '机械闲置现象', '维护成本', '燃料费用'],answer:[1],analysis:'施工机具设备成本影响因素：①燃料费用；②维护费用；③租赁费用。选项B属于现场管理能力的影响因素。',memory:'【口诀】"成本考核：评价业绩奖罚"——成本考核定义。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'按成本性态不同，施工成本可分为固定成本和变动成本，下列属于固定成本的是（）。',options:['计件工资', '材料费', '施工机械使用费', '管理人员工资'],answer:[3],analysis:'固定成本是指在一定期间和工程量范围内不受工程量变动影响的成本，如办公设施的折旧费、管理人员工资等。',memory:'【口诀】"直接成本：人材机措施费"——直接成本组成。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'工程成本与工程量的关系划分中，属于成本分类的是（）。',options:['目标成本和责任成本', '固定成本和变动成本', '预算成本和计划成本', '直接成本和间接成本'],answer:[1],analysis:'按工程成本与工程量的关系分类，工程成本分为固定成本和变动成本。',memory:'【口诀】"间接成本：管理人员工资办公费"——间接成本组成。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'下列影响施工成本的因素中，属于施工单位工程部门可控的是（）。',options:['施工机械台班租赁费', '现场管理费', '材料单价', '材料消耗量'],answer:[3],analysis:'工程部门能够控制材料的消耗量。采购部门能够控制价格变动引起的一定范围内的成本变动。',memory:'【口诀】"固定成本：不随产量变"——固定成本特点。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'（）是对成本计划是否实现进行的检查，并为成本管理绩效考核提供依据。A.成本核算',options:['成本控制', '成本分析', '成本管理绩效考核'],answer:[2],analysis:'成本分析的核心作用是检查成本计划的实现情况，同时为成本管理绩效考核提供数据依据。选项A（成本核算）在最新教材中已删除相关内容；选项B（成本控制）是监督成本计划的实施过程；选项D（绩效考核）是实现成本目标的保证与手段。',memory:'【口诀】"变动成本：随产量正比变"——变动成本特点。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'成本管理各环节是一个有机联系与相互制约的系统过程，成本管理的工作为：①成本控制；②成本分析；③成本管理绩效考核；④成本计划。其正确的排序是（）。',options:['①④③②', '①④②③', '④①③②', '④①②③'],answer:[3],analysis:'成本管理的完整工作流程为：成本计划→成本控制→成本分析→成本管理绩效考核，因此正确排序为④①②③。',memory:'【口诀】"成本管理措施：组织技术经济合同"——四类措施。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'施工成本控制的主要依据是（）。',options:['成本预测', '成本核算', '成本分析', '成本计划'],answer:[3],analysis:'成本计划是开展成本控制和成本分析的基础，也是施工成本控制的核心依据。',memory:'【口诀】"成本计划类型：竞争性指导性实施性"——计划类型。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'工程成本管理流程第一步是（）。',options:['工程项目管理策划', '工程成本数据收集管理', '施工组织设计及施工方案编制', '工程投标报价'],answer:[3],analysis:'工程成本管理的完整流程为：工程投标报价→工程项目管理策划→施工组织设计及施工方案编制→施工安排及资源供应→工程施工→工程成本收集整理→成本节约超支分析→成本管理持续改进→竣工结算，因此第一步是工程投标报价。',memory:'【口诀】"成本预测：事前科学估算"——成本预测。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'multi',question:'下列建设工程项目施工成本费用中，属于间接成本的有（）。',options:['人工费', '现场管理人员的人工费', '工程保修费', '检验试验费', '机械费'],answer:[1, 2, 3],analysis:'选项A、E属于直接成本。直接成本包括人工费、材料费、施工机械使用费和其他直接费。间接成本包括勘察设计费、检验试验费、工程保修费、保险费等。',memory:'【口诀】"成本决策：选择最优方案"——成本决策。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'multi',question:'按工程成本形成的时间，工程成本可划分为（）。',options:['预算成本', '直接成本', '计划成本', '实际成本', '工期成本'],answer:[0, 2, 3],analysis:'选项B属于按生产费用计入工程成本的方法分类。选项E属于按工程成本要素构成划分。按形成时间分类，工程成本分为预算成本、计划成本、实际成本。',memory:'【口诀】"成本管理任务：计划控制核算分析考核"——管理任务。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'multi',question:'安全成本可分为安全生产保障成本和安全事故损失成本两部分。（）属于安全保障成本。',options:['安全防护工程费用', '工程保修费', '安全防护措施费用', '质量事故处理费用', '安全教育培训费用'],answer:[0, 2, 4],analysis:'安全生产保障成本包括安全防护工程费用、安全防护措施费用、安全教育培训费用等；安全事故损失成本包括企业内部损失成本和企业外部损失成本。',memory:'【口诀】"成本管理原则：全面效益科学责权利"——管理原则。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'multi',question:'根据工程特点和成本管理要求不同，工程成本可分为不同类别。构成工程实体的材料费可归入的工程成本类别有（）。',options:['变动成本', '直接成本', '采购成本', '措施成本', '质量成本'],answer:[0, 1],analysis:'变动成本是随着工程量的增减变化而成正比例变化的各项成本，如材料费、计件工资等。直接成本是指在工程项目实施过程中直接耗费的构成工程实体或有助于工程形成的各项支出，包括人工费、材料费、机械使用费和其他直接费。',memory:'【口诀】"全面成本管理：全员全过程全企业"——全面管理。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'multi',question:'影响工程成本的因素很多，主要来自（）方面。',options:['项目范围', '项目运营', '工程设计', '工程施工', '项目评估'],answer:[0, 2, 3],analysis:'影响工程成本的因素很多，主要来自三个大的方面，包括项目范围、工程设计和工程施工。变动成本。',memory:'【口诀】"成本分类：直接间接，固定变动"——成本分类。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'multi',question:'信息技术在施工成本管理中的应用会有多方面影响，下列说法正确的是（）',options:['能提高管理效率', '实现动态控制', '减少初期投入', '优化供应链管理', '减少安全风险'],answer:[0, 1, 3],analysis:'信息技术在施工成本管理中的应用会有多方面影响，不仅能够提高管理效率和实现动态控制，还能优化供应链管理、降低人工和材料成本，并带来长期经济效益；但信息技术的引入需要一定的初期投入，如软件和硬件设备投入、人力成本和维护成本等。',memory:'【口诀】"直接成本：直接构成工程实体"——直接成本。',section:'6.1  工程成本影响因素及管理流程'},
+  {type:'single',question:'关于施工责任成本的说法，正确的是（）。',options:['施工责任成本是以任务中心为对象进行归集的预算成本（Kimmy真帅）', '施工责任成本是以责任中心为对象进行归集的预算成本', '施工责任成本是以任务中心为对象进行归集的可控成本', '施工责任成本是以责任中心为对象进行归集的可控成本'],answer:[3],analysis:'施工责任成本是以责任中心为对象来进行归集的可控成本，将企业成本管理中的经济责任进行明确划分，体现出 “分级控制” 与 “责权利一体” 的现代企业管理理念。',memory:'【口诀】"间接成本：组织管理费用"——间接成本。',section:'6.2  施工成本计划'},
+  {type:'single',question:'在编制施工责任成本之前，确定施工责任成本的前提是（）。',options:['完成工程施工目标', '履行施工合同', '明确经济责任', '明确成本预算'],answer:[1],analysis:'施工责任成本是以履行施工合同为前提，依据施工项目预算成本，经过施工单位和项目管理机构协商确定的由项目管理机构控制的成本总额。',memory:'【口诀】"成本计划编制依据：合同图纸定额"——编制依据。',section:'6.2  施工成本计划'},
+  {type:'single',question:'施工责任成本是以（）为对象归集的成本。',options:['专业班组', '项目经理', '分部工程', '责任中心'],answer:[3],analysis:'施工责任成本是以责任中心为对象来进行归集的可控成本，将企业成本管理中的经济责任进行明确划分，体现出 “分级控制” 与 “责权利一体” 的现代企业管理理念。',memory:'【口诀】"成本计划编制方法：定额预算"——编制方法。',section:'6.2  施工成本计划'},
+  {type:'single',question:'施工责任成本需要利用工程成本的部分参数进行计算，下列关于施工责任成本计算的公式，正确的是（）。',options:['施工责任成本=预计结算收入-项目目标利润', '施工责任成本降低额=施工责任成本-项目计划成本', '施工责任成本=预计结算收入-项目实际利润', '施工责任成本降低率=施工责任成本降低额/（施工责任成本降低额+项目实际成本）'],answer:[3],analysis:'施工责任成本可采用以下公式进行计算：施工责任成本 = 预计结算收入 - 税金 - 企业管理费 - 目标利润；施工责任成本降低额 = 施工责任成本 - 项目实际成本；施工责任成本降低率 = 施工责任成本降低额 / 施工责任成本',memory:'【口诀】"成本控制依据：合同计划报告变更"——控制依据。',section:'6.2  施工成本计划'},
+  {type:'single',question:'施工责任成本分解后会制定各种控制目标。下列各类施工责任成本控制目标中，由质量部门担任责任部门的是（）。',options:['资金利息', '临时设施建设费用', '钢筋量盈利', '维修成本'],answer:[3],analysis:'质量成本包括维修成本和创奖成本，由质量部门担任责任部门；资金利息由商务部门负责，临时设施建设费用、钢筋量盈利分别由工程、物资等部门负责。',memory:'【口诀】"成本控制步骤：比较分析预测纠偏检查"——控制步骤。',section:'6.2  施工成本计划'},
+  {type:'single',question:'下列成本计划中，用于确定责任总成本目标的是（）。',options:['指导性成本计划', '竞争性成本计划', '响应性成本计划', '实施性成本计划'],answer:[0],analysis:'指导性成本计划是选派项目经理阶段的预算成本计划，是项目经理的责任成本目标，一般情况下以此确定责任总成本目标。',memory:'【口诀】"成本计划编制程序：收集资料确定目标编制计划"——编制程序。',section:'6.2  施工成本计划'},
+  {type:'single',question:'不同的施工成本计划具有不同的性质和作用，下列关于竞争性成本计划的说法，正确的是（）。',options:['竞争性成本计划是以有关价格条件说明为基础编制的', '竞争性成本计划的编制需要以项目实施方案为依据', '竞争性成本计划是对战略性成本计划的战术安排', '竞争性成本计划是在选派项目经理阶段编制的'],answer:[0],analysis:'竞争性成本计划是在施工投标及签订合同阶段的估算成本计划，以招标文件中的合同条件、投标者须知、技术规范、设计图纸和工程量清单为依据，以有关价格条件说明为基础编制。',memory:'【口诀】"目标成本：预计收入减目标利润"——目标成本计算。',section:'6.2  施工成本计划'},
+  {type:'single',question:'关于施工企业指导性成本计划的说法，正确的是（）。',options:['以合同价为依据，按照企业定额标准制定的施工成本计划', '是在施工投标及签订合同阶段的估算成本计划', '是在工程项目施工准备阶段，以项目实施方案为依据编制的成本计划', '以落实项目经理责任目标为出发点，根据施工定额编制的成本计划'],answer:[0],analysis:'指导性成本计划是指在选派项目经理阶段的预算成本计划，是项目经理的责任成本目标，以合同价为依据，按照企业定额标准制定的施工成本计划，用以确定施工责任成本。',memory:'【口诀】"成本计划内容：总成本单位成本降低成本"——计划内容。',section:'6.2  施工成本计划'},
+  {type:'single',question:'下列各类工程文件中，属于工程项目施工准备阶段进行施工成本计划编制依据的是（）。',options:['工程量清单', '项目实施方案', '设计图纸', '合同价'],answer:[1],analysis:'施工成本计划的编制依据包括：合同文件；项目管理实施规划；相关设计文件；价格信息；相关定额；类似项目成本资料等。施工准备阶段编制实施性成本计划，以项目实施方案为核心依据。',memory:'【口诀】"成本分解：按成本构成分解，按子项目分解"——成本分解。',section:'6.2  施工成本计划'},
+  {type:'single',question:'做好施工成本计划编制工作的关键是（）。',options:['确定目标成本', '分解目标成本', '制定考核标准', '确定成本责任部门'],answer:[0],analysis:'施工成本计划的编制应以成本预测为基础，关键是确定目标成本。',memory:'【口诀】"时间成本累积曲线：S曲线"——S曲线。',section:'6.2  施工成本计划'},
+  {type:'single',question:'根据《建设工程项目管理规范》GB/T50326--2017，施工成本计划编制包括下列程序：①编制项目总体成本计划；②项目管理机构与企业职能部门根据其责任成本范围，分别确定各自成本目标，并编制相应的成本计划；③确定项目总体成本目标；④针对成本计划制定相应的控制措施；⑤由项目管理机构与企业职能部门负责人分别审批相应的成本计划；⑥预测项目成本。正确的编制顺序是（）。',options:['③-⑥-①-⑤-④-②', '⑥-③-①-④-⑤-②', '③-①-⑥-②-⑤-④', '⑥-③-①-②-④-⑤'],answer:[3],analysis:'施工成本计划编制程序为：①预测项目成本；②确定项目总体成本目标；③编制项目总体成本计划；④项目管理机构与企业职能部门根据其责任成本范围，分别确定各自成本目标，并编制相应的成本计划；⑤针对成本计划制定相应的控制措施；⑥由项目管理机构与企业职能部门负责人分别审批相应的成本计划。',memory:'【口诀】"香蕉图：最早最迟时间成本"——香蕉图。',section:'6.2  施工成本计划'},
+  {type:'single',question:'施工成本计划需要依据相关文件并依赖各部门配合编制，下列关于施工成本计划编制的依据和分解的说法，正确的是（）。',options:['施工成本计划的编制应以控制成本为基础', '施工成本计划的施工成本总额应控制在目标成本范围内', '施工成本计划应该由财务部门组织编制', '施工成本计划的关键是成本预测'],answer:[1],analysis:'施工成本计划的编制应以成本预测为基础，关键是确定目标成本；成本计划由项目管理机构编制；施工成本总额应控制在目标成本范围内，并建立在切实可行的基础上。',memory:'【口诀】"成本控制原则：全面控制动态控制开源节流"——控制原则。',section:'6.2  施工成本计划'},
+  {type:'single',question:'为了避免个别单位工程或工程量表中某项工程量计算有较大出入，导致编制的成本计划偏离原来计划成本，所以需要在项目总体层面上考虑总的预备费，也需要在主要（）中安排适当的不可预见费。',options:['分项工程', '单位工程', '分部工程', '单项工程'],answer:[0],analysis:'在编制成本支出计划时，要在项目总体层面上考虑总的预备费，也要在主要分项工程中安排适当的不可预见费，避免在具体编制成本计划时，可能发生个别单位工程或工程量表中某项内容的工程量计算有较大出入，偏离原来计划成本。',memory:'【口诀】"赢得值法：BCWSBCWPACWP"——赢得值三参数。',section:'6.2  施工成本计划'},
+  {type:'single',question:'在某工程施工过程中，将工程按照基础、主体、安装、装饰装修等阶段进行分解编制的施工成本计划编制方法是（）。',options:['按工程分包划分编制', '按工程项目结构编制', '按工程成本组成编制', '按工程实施阶段编制'],answer:[3],analysis:'施工成本计划可按工程实施阶段（如基础、主体、安装、装饰装修等工程施工）或按月、季、年等实施进度进行编制。',memory:'【口诀】"费用偏差CV：BCWP减ACWP"——CV计算。',section:'6.2  施工成本计划'},
+  {type:'single',question:'绘制时间-成本累积曲线的步骤中，紧接“计算规定时间t计划累计支出的成本额”之后的工作是（）。',options:['在时标网络图上，按时间编制成本支出计划', '确定工程项目进度计划，编制进度计划的横道图', '绘制S形曲线', '计算单位时间的成本'],answer:[2],analysis:'时间 - 成本累积曲线的绘制步骤如下：①确定工程项目进度计划，编制进度计划的横道图；②根据每单位时间内完成的实物工程量或投入的人力、物力和财力，计算单位时间（月或旬）的成本，在时标网络图上按时间编制成本支出计划；③计算规定时间 t 计划累计支出的成本额；④按各规定时间的 Qt 值，绘制 S 形曲线。',memory:'【口诀】"进度偏差SV：BCWP减BCWS"——SV计算。',section:'6.2  施工成本计划'},
+  {type:'single',question:'建设工程项目施工成本按构成要素可分解为（）。',options:['直接费、间接费、利润、税金等', '单位工程施工成本、分部工程施工成本、分项工程施工成本等', '人工费、材料费、施工机具使用费、措施项目费等', '人工费、材料费、施工机具使用费、企业管理费等'],answer:[3],analysis:'施工成本可以按成本构成分解为人工费、材料费、施工机具使用费和企业管理费等；按照成本构成要素划分，建筑安装工程费由人工费、材料（包含工程设备）费、施工机具使用费、企业管理费、利润、规费和增值税组成。',memory:'【口诀】"费用绩效CPI：BCWP除ACWP"——CPI计算。',section:'6.2  施工成本计划'},
+  {type:'single',question:'在绘制时间-成本累积曲线（S曲线）时，工程项目的实际S曲线被包络在由全部工作均按（）的两条S曲线组成的“香蕉图”内。',options:['最早开始时间开始和最早完成时间开始', '最早开始时间开始和最迟开始时间开始', '最迟开始时间开始和最迟完成时间开始（Kimmy真帅）', '最早完成时间开始和最迟完成时间开始'],answer:[1],analysis:'每一条 S 曲线都对应某一特定工程的施工进度计划。由于在施工进度网络计划的非关键路线中，会存在若干有时差的工作，因而会使 S 曲线必然被包络在由全部工作均按最早开始时间开始和全部工作均按最迟开始时间开始的两条 S 曲线所组成的 “香蕉图” 内。',memory:'【口诀】"进度绩效SPI：BCWP除BCWS"——SPI计算。',section:'6.2  施工成本计划'},
+  {type:'single',question:'施工单位按实施进度编制施工成本计划时，将施工进度网络计划中的所有工作均按其最早开始时间和最早完成时间安排的优点是（）。',options:['可增加非关键工作的总时差', '可使累积工程量曲线更平缓', '可提高工程按期竣工保证率', '可使工程资源投入更均衡'],answer:[2],analysis:'对施工单位而言，施工进度网络计划中的所有工作均按最早开始时间开始、按最早完成时间完成，可以尽早获得工程进度款支付，同时也能提高工程按期竣工的保证率，但同时也会占用施工单位大量资金。',memory:'【口诀】"CV负超支正节约"——CV判断。',section:'6.2  施工成本计划'},
+  {type:'single',question:'某工程项目的某年度时间—成本累积曲线（S曲线）如图所示，下列关于该项目成本计划的描述，错误的是（）。',options:['按照当前计划，该项目5月份的计划支出是500万元', '如果将所有工作按照最迟开始时间开始重新计划，新的S曲线将偏右', '该项目月度计划支出最多的月份是7月份', '该项目前三季度成本计划支出总额是4260万元'],answer:[2],analysis:'根据该 S 曲线，7 月份的月度成本计划支出是 700 万元，8 月份的月度成本计划支出是 900 万元，所以月度支出最多的是 8 月，C 错误。',memory:'【口诀】"SV负延误正提前"——SV判断。',section:'6.2  施工成本计划'},
+  {type:'multi',question:'为了保障施工责任成本的有效性，施工责任成本应该具备的条件有（）。',options:['可考核性', '可控制性', '可修改性', '可计量性', '可预计性'],answer:[0, 1, 3, 4],analysis:'通常而言，责任成本具有四个条件：①可考核性，责任中心能够实时考核责任成本的执行过程及结果；②可预计性，责任中心能够知晓责任成本的发生与发展；③可计量性，责任中心能够计量责任成本的大小；④可控制性，责任中心能够有效调节、控制责任成本。',memory:'【口诀】"CPI小于1超支，大于1节约"——CPI判断。',section:'6.2  施工成本计划'},
+  {type:'multi',question:'在工程项目中标后，需要项目的各个部门配合完成施工责任成本分解工作，在此过程中承担大型机械费用控制目标的责任部门有（）。',options:['采购部门', '工程部门', '人力资源部门', '质量部门', '技术部门'],answer:[1, 4],analysis:'大型机械费用（含塔式起重机、施工电梯、汽车式起重机、吊篮）由工程部门、技术部门控制。',memory:'【口诀】"SPI小于1延误，大于1提前"——SPI判断。',section:'6.2  施工成本计划'},
+  {type:'multi',question:'施工项目竞争性成本计划是（）的估算成本计划。',options:['选派项目经理阶段', '投标阶段', '施工准备阶段', '签订合同阶段', '制定企业年度计划阶段'],answer:[1, 3],analysis:'竞争性成本计划是施工项目投标及签订合同阶段的估算成本计划，以招标文件相关内容为依据，对完成投标工程所需支出的全部费用进行估算。',memory:'【口诀】"偏差分析：原因分析纠偏措施"——偏差分析。',section:'6.2  施工成本计划'},
+  {type:'multi',question:'下列项目建设文件中，属于竞争性成本计划编制依据的有（）。',options:['招标文件', '项目实施方案', '招标工程量清单', '合同价', '企业施工定额'],answer:[0, 2],analysis:'竞争性成本计划以招标文件中的合同条件、投标者须知、技术规范、设计图纸和工程量清单为依据，以有关价格条件说明为基础编制。',memory:'【口诀】"纠偏措施：组织技术经济合同"——纠偏措施。',section:'6.2  施工成本计划'},
+  {type:'multi',question:'下列关于施工成本计划编制方法的说法，正确的有（）。',options:['各种编制施工成本计划的方法是相互独立的', '施工成本计划可以按照成本组成和项目结构进行分解编制', '对于施工单位而言，进度网络计划中的工作都应该按最早时间开始', '施工成本计划可以按照工程实施阶段或月、季度、年等实施进度编制', '按照工程实施进度编制施工成本计划需要兼顾进度和成本'],answer:[1, 3, 4],analysis:'编制施工成本计划的方式并不是相互独立的；横向按成本构成分解施工总成本，纵向按项目结构分解施工总成本；施工成本计划可按工程实施阶段或时间进度编制，且需兼顾进度和成本；所有工作按最早时间开始会占用大量资金，并非最优选择。',memory:'【口诀】"成本计划编制依据：合同图纸定额市场价格"——编制依据。',section:'6.2  施工成本计划'},
+  {type:'multi',question:'按照成本组成编制施工成本计划的方法，组成施工成本的费用有（）。',options:['施工机具使用费', '人工费（Kimmy真帅）', '措施项目费', '企业管理费', '工程定额测定费'],answer:[0, 1, 3],analysis:'按成本构成分解，施工成本可分为人工费、材料费、施工机具使用费和企业管理费等。',memory:'【口诀】"成本计划指标：数量质量效益指标"——计划指标。',section:'6.2  施工成本计划'},
+  {type:'multi',question:'在编制成本计划时，施工单位将所有工作都按照最早开始时间开始绘制S曲线，会产生的情况有（）。',options:['计划成本支出总额变少', '增加施工单位资金占用', '减少施工单位资金占用', '增加工程延期的风险', '降低工程延期的风险'],answer:[1, 4],analysis:'所有工作均按最早开始时间开始、按最早完成时间完成，可以提高工程按期竣工的保证率（降低延期风险），但同时也会占用施工单位大量资金。',memory:'【口诀】"成本控制依据：合同成本计划进度报告变更"——控制依据。',section:'6.2  施工成本计划'},
+  {type:'single',question:'施工成本控制过程可分为两类，其中(    )是成本控制的重点。',options:['管理行为', '指标控制', '绩效控制', '管理指标'],answer:[1],analysis:'施工成本控制过程可分为两类：一是管理行为控制过程；二是指标控制过程。管理行为控制是对施工成本全过程控制的基础，指标控制则是成本控制的重点。两个过程既相对独立又相互联系，既相互补充又相互制约。',memory:'【口诀】"成本控制方法：价值工程赢得值法"——控制方法。',section:'6.3  施工成本控制'},
+  {type:'single',question:'施工成本控制过程可分为两类，其中(    )是对施工成本全过程控制的基础。',options:['管理行为', '指标控制', '绩效控制', '管理指标'],answer:[0],analysis:'施工成本控制过程可分为两类：一是管理行为控制过程；二是指标控制过程。管理行为控制是对施工成本全过程控制的基础，指标控制则是成本控制的重点。两个过程既相对独立又相互联系，既相互补充又相互制约。',memory:'【口诀】"赢得值法作用：费用进度综合控制"——赢得值作用。',section:'6.3  施工成本控制'},
+  {type:'single',question:'下列关于成本管理体系和质量管理体系说法不正确的是(    )。',options:['质量管理体系反映的是企业质量保证能力', '质量管理体系反映的是企业质量保证能力，由社会有关组织进行评审和认证', '成本管理体系的建立是企业自身生存发展的需要，由社会组织来评审和认证', '企业必须建立项目成本管理体系的评审组织和评审程序，定期进行评审和总结，持续改进'],answer:[2],analysis:'成本管理体系的建立不同于质量管理体系，成本管理体系的建立是企业自身生存发展的需要，无社会组织来评审和认证。',memory:'【口诀】"三参数含义：计划工作预算，已完工作预算，已完工作实际"——参数含义。',section:'6.3  施工成本控制'},
+  {type:'single',question:'能否达到(    )目标，是成本控制成功的关键。',options:['施工成本', '预测成本', '计划成本', '项目总体成本'],answer:[0],analysis:'能否达到施工成本目标，是成本控制成功的关键。',memory:'【口诀】"四指标：CVSVCPISPI"——四个评价指标。',section:'6.3  施工成本控制'},
+  {type:'single',question:'(    )阶段是成本发生的主要阶段。',options:['规划', '设计', '施工', '运维'],answer:[2],analysis:'施工阶段是成本发生的主要阶段，这个阶段的成本控制主要是通过确定成本目标并按计划成本组织施工，合理配置资源，对施工现场发生的各项成本费用进行有效控制。',memory:'【口诀】"偏差原因：物价上涨设计原因业主原因施工原因"——偏差原因。',section:'6.3  施工成本控制'},
+  {type:'single',question:'下列关于人工费的控制方法，说法不正确的是(    )。',options:['人工费的控制实行“量价结合”的方法', '加强劳动定额管理，提高劳动生产率，降低工程耗用人工工日，是控制人工费支出的主要手段', '应加强对装配式建筑、机器人建造等新型建造方式和建造科技的探索和应用，提升智能建造水平', '应不断提高建筑工人技能水平'],answer:[0],analysis:'人工费的控制实行“量价分离”的方法。',memory:'【口诀】"纠偏措施：寻找新的效率更高的方案"——纠偏措施。',section:'6.3  施工成本控制'},
+  {type:'single',question:'下列关于材料费的控制方法，说法不正确的是(    )。',options:['材料费的控制实行“量价分离”的方法', '通过定额控制、指标控制、计量控制、包干控制等手段有效控制物资材料的消耗', '对于没有消耗定额的材料，则实行计划管理和按指标控制的办法', '材料价格主要由市场价格控制，包括由买价、运杂费、运输中的合理损耗等'],answer:[3],analysis:'材料价格主要由材料采购部门控制。',memory:'【口诀】"成本核算原则：确认分期相关实际"——核算原则。',section:'6.3  施工成本控制'},
+  {type:'single',question:'施工机具使用费主要由(    )和台班单价两方面决定。',options:['台班数量', '工程量', '机械种类', '机械参数'],answer:[0],analysis:'施工机具使用费主要由台班数量和台班单价两方面决定，因此为有效控制施工机具使用费，应主要从两个方面进行控制。',memory:'【口诀】"成本核算对象：单位工程分项工程"——核算对象。',section:'6.3  施工成本控制'},
+  {type:'single',question:'挣值法的三个基本参数是：已完工程预算费用、拟完工程预算费用和(    )。',options:['拟完成工程量', '已完成工程量', '已完成工程实际费用', '拟完成工程实际费用'],answer:[2],analysis:'挣值法的三个基本参数是：已完工程预算费用、拟完工程预算费用和已完工程实际费用。',memory:'【口诀】"成本核算方法：表格核算法会计核算法"——核算方法。',section:'6.3  施工成本控制'},
+  {type:'single',question:'下列关于费用绩效指数(CPI)，说法正确的是(    )。',options:['CPI＜1，实际费用节约', 'CPI＞1，实际费用超支', '费用绩效指数(CPI)=已完工程实际费用(ACWP)/已完工程预算费用(BCWP)', '费用绩效指数(CPI)=已完工程预算费用(BCWP)/已完工程实际费用(ACWP)'],answer:[3],analysis:'当费用绩效指数(CPI)＜1时，表明实际费用超支；当费用绩效指数(CPI)＞1时，表明实际费用节约。CPI=1时，表明实际费用按预算支出。\n费用绩效指数(CPI)=已完工程预算费用(BCWP)/已完工程实际费用(ACWP)',memory:'【口诀】"表格核算法：简便实用精度低"——表格法特点。',section:'6.3  施工成本控制'},
+  {type:'single',question:'下列关于进度绩效指数(SPI)，说法错误的是(    )。',options:['SPI＜1时，表明实际进度拖后', 'SPI＞1时，表明实际进度提前', '进度绩效指数(SPI)=已完工程预算费用(BCWP)/拟完工程预算费用(BCWS)', '进度绩效指数(SPI)=拟完工程预算费用(BCWS)/已完工程预算费用(BCWP)'],answer:[2],analysis:'当进度绩效指数(SPI)＜1时，表明实际进度拖后；当进度绩效指数(SPI)＞1时，表明实际进度提前。SPI=1时，表明实际进度正常。\n进度绩效指数(SPI)=已完工程预算费用(BCWP)/拟完工程预算费用(BCWS)',memory:'【口诀】"会计核算法：科学严密工作量大"——会计法特点。',section:'6.3  施工成本控制'},
+  {type:'single',question:'关于建设工程施工成本控制的说法，正确的是(    )。',options:['指标控制是对施工成本全过程控制的基础', '成本管理体系由社会有关组织进行评审和认证', '建立项目成本管理体系运行的评审组织和评审程序是管理行为控制', '目标考核，定期检查是指标控制过程'],answer:[2],analysis:'选项A管理行为控制是对施工成本全过程控制的基础，故A错误；选项B成本管理体系的建立不同于质量管理体系，质量管理体系反映的是企业质量保证能力，由社会有关组织进行评审和认证；成本管理体系的建立是企业自身生存发展的需要，无社会组织来评审和认证，故B错误；管理行为控制过程包括：1)建立项目成本管理体系的评审组织和评审程序；2)建立项目成本管理体系运行的评审组织和评审程序；3)目标考核，定期检查；4)制定对策，纠正偏差；故D错误。',memory:'【口诀】"成本分析依据：核算资料计划资料统计资料"——分析依据。',section:'6.3  施工成本控制'},
+  {type:'single',question:'在工程施工过程中，对影响施工成本的各项要素，即施工生产所耗费的人力、物力和各项费用开支，采取一定措施进行监督和分析，及时预防、发现和纠正偏差，保证施工成本目标实现的过程，该做法属于成本管理的(    )的工作内容。',options:['成本计划', '成本控制', '成本分析', '成本考核'],answer:[1],analysis:'施工成本控制是指在工程施工过程中，对影响施工成本的各项要素，即施工生产所耗费的人力、物力和各项费用开支，采取一定措施进行监督和分析，及时预防、发现和纠正偏差，保证施工成本目标实现的过程。',memory:'【口诀】"成本分析方法：比较法因素分析法差额计算法比率法"——分析方法。',section:'6.3  施工成本控制'},
+  {type:'single',question:'施工成本指标控制过程的环节有①采集成本数据，监测成本形成过程。②确定成本管理分层次目标。③制定对策，纠正偏差。④调整改进成本管理方法。⑤找出偏差，分析原因。控制过程顺序正确的是(    )。',options:['①→②→⑤→③→④', '①→②→⑤→④→③', '②→①→⑤→④→③', '②→①→⑤→③→④'],answer:[3],analysis:'指标控制过程：(1)确定成本管理分层次目标。(2)采集成本数据，监测成本形成过程。(3)找出偏差，分析原因。(4)制定对策，纠正偏差。(5)调整改进成本管理方法。',memory:'【口诀】"成本分析内容：计划完成情况影响因素技术经济指标"——分析内容。',section:'6.3  施工成本控制'},
+  {type:'single',question:'某建设工程项目根据以往项目的实际耗用情况，结合具体施工项目的内容和要求，制定领用材料指标，以控制发料。这种属于哪种材料用量控制方法(    )。',options:['定额控制', '计量控制', '指标控制', '包干控制'],answer:[2],analysis:'指标控制。对于没有消耗定额的材料，则实行计划管理和按指标控制的办法。根据以往项目的实际耗用情况，结合具体施工项目的内容和要求，制定领用材料指标，以控制发料。超过指标的材料，必须经过一定的审批手续方可领用。',memory:'【口诀】"比较法：实际与目标比，本期与上期比"——比较法。',section:'6.3  施工成本控制'},
+  {type:'single',question:'下列控制施工机具使用费的控制措施中，下列不属于控制台班单价的是(    )。',options:['加强现场设备的维修、保养工作', '加强设备租赁计划管理，减少不必要的设备闲置和浪费', '加强机械操作人员的培训工作', '成立设备管理领导小组'],answer:[1],analysis:'台班单价\n①加强现场设备的维修、保养工作。降低大修、经常性修理等各项费用的开支提高机械设备的完好率，最大限度地提高机械设备的利用率，避免因使用不当造成机械设备的停置。\n②加强机械操作人员的培训工作。不断提高操作技能，提高施工机械台班的生产效率。\n③加强配件的管理。建立健全配件领发料制度，严格按油料消耗定额控制油料消耗，做到修理有记录，消耗有定额，统计有报表，损耗有分析。通过经常分析总结，提高修理质量，降低配件消耗，减少修理费用的支出。\n④降低材料成本。做好施工机械配件和工程材料采购计划，降低材料成本。\n⑤成立设备管理领导小组，负责设备调度、检查、维修、评估等具体事宜。对主要部件及其保养情况建立档案，分清责任，便于尽早发现问题，找到解决问题的办法。\n选项B属于控制台班数量。',memory:'【口诀】"因素分析法：连环替代法"——因素分析法。',section:'6.3  施工成本控制'},
+  {type:'single',question:'在工程施工阶段，对零星材料如钢丝、钢钉的用量控制，宜采用(    )方法。',options:['包干控制', '指标控制', '计量控制', '定额控制'],answer:[0],analysis:'包干控制。在材料使用过程中，对部分小型及零星材料(如钢钉、钢丝等)根据工程量计算出所需材料量，将其折算成费用，由作业者包干使用，故选A。',memory:'【口诀】"差额计算法：因素分析的简化"——差额计算法。',section:'6.3  施工成本控制'},
+  {type:'single',question:'下列不属于成本偏差的表达方法是(    )。',options:['横道图法', '表格法', '核算法', '曲线法'],answer:[2],analysis:'成本偏差可采用不同的表达方法，常用的有横道图法、表格法和曲线法。',memory:'【口诀】"比率法：相关比率构成比率动态比率"——比率法。',section:'6.3  施工成本控制'},
+  {type:'single',question:'关于挣得值法及相关评价指标的说法，正确的是(    )。',options:['进度偏差为负值时，表示实际进度比计划进度提前', '进度和费用绩效指数只适用同一个项目', '挣值法可定性的判断进度、费用的执行效果', '理想的状态是已完工程实际费用(ACWP)、拟完工程预算费用(BCWS)、已完工程预算费用(BCWP)三条曲线靠得很近、平稳上升'],answer:[3],analysis:'当进度偏差SV为负值时，表明实际进度拖后，故选项A错误；费用(进度)绩效指数反映的是相对偏差，它不受项目层次的限制，故选项B错误；在项目费用、进度综合控制中引入挣值法，可以克服以往进度、费用分开控制的缺点，即当发现费用超支时，很难直接判断是由于费用超出预算，还是由于进度提前。相反，当发现费用低于预算时，也很难直接判断是由于费用节省，还是由于进度拖延。引入挣值法即可定量地判断进度、费用的执行效果，故选项C错误；最理想的状态是已完工程实际费用(ACWP)、拟完工程预算费用(BCWS)、已完工程预算费用(BCWP)三条曲线靠得很近、平稳上升，表明施工项目按预定计划进行。如果三条曲线离散度不断增加，则可能出现较大的费用偏差，故选项D正确。',memory:'【口诀】"分部分项工程分析：三算对比"——三算对比。',section:'6.3  施工成本控制'},
+  {type:'single',question:'某建设工程项目截至6月末的相关数据为，BCWP是590万元，BCWS是430万元，ACWP是850万元，则该工程的CV为(    )万元。',options:['-260', '260', '160', '-160'],answer:[0],analysis:'CV=BCWP-ACWP=590-850=-260万元',memory:'【口诀】"三算：预算成本目标成本实际成本"——三算内容。',section:'6.3  施工成本控制'},
+  {type:'single',question:'某工程开工后至第 4 月末，累计已完工程实际费用 300 万元，已完工程预算费用 350 万元，拟完工程预算费用 330 万元。则该工程第 4 月末实际进展和费用支出状况，正确的是（ ）。',options:['费用绩效指数为 0.86，实际费用超支', '进度偏差为 20 万元，实际进度拖后', '费用偏差为-50 万元，实际费用节约', '进度绩效指数为 1.06，实际进度超前'],answer:[3],analysis:'费用绩效指数（CPI）=已完工程预算费用（BCWP）/已完工程实际费用（ACWP）=350/300=1.17。\n费用偏差（CV）=已完工程预算费用（BCWP）-已完工程实际费用（ACWP）=350-300=50。\n进度偏差（SV）=已完工程预算费用（BCWP）-拟完工程预算费用（BCWS）=350-330=20。\n进度绩效指数（SPI）=已完工程预算费用（BCWP）/拟完工程预算费用（BCWS）=350/330=1.06。',memory:'【口诀】"月季度成本分析：定期经常性分析"——定期分析。',section:'6.3  施工成本控制'},
+  {type:'multi',question:'常用的成本偏差的表达方法有(    )。',options:['网络图法', '横道图法', '表格法', '曲线法', '分布图法'],answer:[1, 2, 3],analysis:'成本偏差可采用不同的表达方法，常用的有横道图法、表格法和曲线法。',memory:'【口诀】"年度成本分析：竣工成本综合分析"——年度分析。',section:'6.3  施工成本控制'},
+  {type:'multi',question:'下列关于管理行为控制和指标控制，说法不正确的有(    )。',options:['管理行为控制是对施工成本全过程控制的基础，指标控制则是成本控制的重点', '指标控制的目的是确保每个岗位人员在成本管理过程中的管理行为符合事先确定的程序和方法的要求', '管理行为控制过程是为规范项目成本管理行为而制定的约束和激励体系', '对各岗位人员的成本管理行为进行控制，就是为了保证成本目标的实现', '管理行为控制和指标控制两个过程相互独立，互不影响'],answer:[1, 4],analysis:'B错误，应为管理行为控制。E错误，两个过程相互交叉、相互制约又相互联系。',memory:'【口诀】"竣工成本分析：竣工成本主要资源节超技术经济指标"——竣工分析。',section:'6.3  施工成本控制'},
+  {type:'multi',question:'下列关于施工成本控制的说法，正确的是(    )。',options:['指标控制是成本控制的重点', '人工费、材料费的控制都实行“量价分离”的方法', '加强劳动定额管理，提高劳动生产率，降低工程耗用人工工日是控制人工费支出的主要手段', '完善职业技能培训体系是控制施工机具使用费的有效手段之一', '施工机具使用费主要由台班数量和台班单价两方面决定'],answer:[0, 1, 2, 4],analysis:'施工成本控制过程可分为两类：一是管理行为控制过程；二是指标控制过程。管理行为控制是对施工成本全过程控制的基础，指标控制则是成本控制的重点，故选项A正确；人工费的控制实行"量价分离"的方法，将作业用工及零星用工按定额工日的一定比例综合确定用工数量与单价，通过专业作业分包合同进行控制。加强劳动定额管理，提高劳动生产率，降低工程耗用人工工日，是控制人工费支出的主要手段；材料费的控制同样按照“量价分离”原则控制材料用量和材料价格，故选项BC正确；完善职业技能培训体系是控制人工费的手段；施工机具使用费主要由台班数量和台班单价两方面决定，选项E正确。',memory:'【口诀】"专项成本分析：特定事项分析"——专项分析。',section:'6.3  施工成本控制'},
+  {type:'multi',question:'下列控制施工机具使用费的措施中，属于控制台班数量的有(    )。',options:['加强内部调配，提高机械设备的利用率', '加强机械操作人员的培训工作', '安排好生产工序的衔接，避免停工、窝工', '提高机械设备单位时间的生产效率和利用率', '加强配件的管理'],answer:[0, 2, 3],analysis:'(1)台班数量\n①根据施工方案和现场实际情况，选择适合项目施工特点的施工机械，制定设备需求计划，合理安排施工生产，充分利用现有机械设备，加强内部调配，提高机械设备的利用率。②保证施工机械设备的作业时间，安排好生产工序的衔接，尽量避免停工、窝工，尽量减少施工中所消耗的机械台班数量。③核定设备台班定额产量，实行超产奖励办法，加快施工生产进度，提高机械设备单位时间的生产效率和利用率。④加强设备租赁计划管理，减少不必要的设备闲置和浪费，充分利用社会闲置机械资源。选项BE属于控制台班单价措施。',memory:'【口诀】"成本盈亏异常分析：找原因定措施"——盈亏分析。',section:'6.3  施工成本控制'},
+  {type:'multi',question:'某分项工程采用挣值法分析得到，已完工程预算费用(BCWP)＞拟完工程预算费用(BCWS)＞已完工程实际费用(ACWP)，则该工程(    )。',options:['费用超支', '进度延误', '费用节余', '进度提前', '费用绩效指数＞1'],answer:[2, 3, 4],analysis:'已完工程预算费用(BCWP)＞拟完工程预算费用(BCWS)＞已完工程实际费用(ACWP)，费用偏差(CV)=BCWP-ACWP，CV＞0，表示费用节余；进度偏差(SV)=BCWP-BCWS，SV＞0，表示进度提前；费用绩效指数(CPI)=BCWP/ACWP＞1。',memory:'【口诀】"工期成本分析：工期与成本关系"——工期成本分析。',section:'6.3  施工成本控制'},
+  {type:'multi',question:'下列施工成本纠偏措施中，属于经济措施的是(    )。',options:['进行技术经济分析，降低材料库存成本和运输成本', '编制项目资金使用计划', '分析成本管理目标，制定防范性对策', '分析项目的索赔条款', '编制成本管理工作计划'],answer:[1, 2],analysis:'经济措施：对成本管理目标进行风险分析，并制定防范性对策。对各种支出，应做好资金的使用计划，并在施工中严格控制各项开支。及时准确地记录、收集、整理、核算实际支出的费用。对各种变更，应及时做好增减账、落实业主签证并结算工程款。通过偏差分析和未完工工程预测，可发现一些潜在的可能引起未完工程成本增加的问题，对这些问题应以主动控制为出发点，及时采取预防措施。选项A属于技术措施，选项D属于合同措施，选项E属于组织措施。',memory:'【口诀】"资金成本分析：资金与成本关系"——资金成本分析。',section:'6.3  施工成本控制'},
+  {type:'single',question:'成本分析的主要依据是(    )、业务核算和统计核算所提供的资料。',options:['会计核算', '价值核算', '费用核算', '制度核算'],answer:[0],analysis:'成本分析的主要依据是会计核算、业务核算和统计核算所提供的资料。',memory:'【口诀】"成本考核依据：成本计划成本核算资料"——考核依据。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'施工成本分析的正确步骤为(    )。',options:['②→①→③→④→⑤', '②→③→①→④→⑤', '①→②→③→④→⑤', '①→②→③→⑤→④'],answer:[2],analysis:'施工成本分析应遵循下列步骤：①选择成本分析方法；②收集成本信息；③进行成本数据处理；④分析成本形成原因；⑤确定成本结果。',memory:'【口诀】"成本考核指标：数量指标质量指标效益指标"——考核指标。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'下列关于成本分析的依据说法不正确的是(    )。',options:['会计核算主要是价值核算', '业务核算是各业务部门根据业务工作的需要建立的核算制度', '统计核算是利用会计核算资料和业务核算资料，把企业生产经营活动客观现状的大量数据，按统计方法加以系统整理', '会计核算的范围比业务、统计核算要广'],answer:[3],analysis:'D错误，业务核算的范围比会计、统计核算要广。',memory:'【口诀】"成本降低额：实际降低额计划降低额"——降低额指标。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'下列关于施工机具使用费分析，说法不正确的是(    )。',options:['由于项目施工具有的一次性，项目管理机构不可能拥有自己的机械设备，而是随着施工的需要，向企业动力部门或外单位租用', '机械设备租用可按产量进行承包，并按完成产量计算费用', '塔式起重机一般按使用时间计算机械费', '土方工程所用机械一般按时间计算机械费'],answer:[3],analysis:'土方工程一般按产量进行承包，并按完成产量计算费用。',memory:'【口诀】"成本降低率：实际降低率计划降低率"——降低率指标。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'企业对项目成本的考核包括对施工成本目标完成情况的考核和(    )的考核。',options:['施工成本数据', '施工成本计划', '成本管理工作业绩', '施工成本绩效'],answer:[2],analysis:'企业对项目成本的考核包括对施工成本目标(降低额)完成情况的考核和成本管理工作业绩的考核。',memory:'【口诀】"成本分析原则：实事求是数据说话注重实效"——分析原则。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'下列关于项目经理对所属各部门、各施工队和班组的考核，说法不正确的是(    )。',options:['对各部门的考核内容包含本部门、本岗位成本管理责任的执行情况', '对各施工队的考核内容包含专业作业合同以外的补充收费情况', '对各班组的考核内容以施工任务单和限额领料单的结算资料为依据，与施工预算进行对比，考核班组责任成本完成情况', '对各班组的考核内容以检验批成本作为班组的责任成本'],answer:[3],analysis:'对各班组的考核内容以分部分项工程成本作为班组的责任成本。',memory:'【口诀】"比较法形式：实际与目标，本期与上期，与先进水平"——比较形式。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'企业使用平衡积分卡进行成本管理绩效考核时，应从(    )个维度来设定适当的指标。',options:['三', '四', '五', '六'],answer:[1],analysis:'企业可以结合平衡积分卡的四个维度来设定适当的指标：\n①财务绩效指标。\n②客户满意度指标。\n③内部流程效率指标。\n④学习与成长方面的指标。',memory:'【口诀】"因素分析法步骤：确定因素排序替代计算"——分析步骤。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'不但可以核算已经完成的项目是否达到原定的目的、取得预期的效果，而且可以对尚未发生或正在发生的经济活动进行核算，这是属于(    )方法。',options:['会计核算', '业务核算', '统计核算', '表格核算'],answer:[1],analysis:'业务核算不但可以核算已经完成的项目是否达到原定的目的、取得预期的效果，而且可以对尚未发生或正在发生的经济活动进行核算，以确定该项经济活动是否有经济效果，是否有执行的必要。',memory:'【口诀】"因素排序规则：先量后价先绝对后相对"——排序规则。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'会计核算是成本分析的重要依据，其原因是(    )。',options:['记录企业的一切生产经营活动，具有连续性、系统性、综合性特点', '预测成本变化发展的趋势', '计算当前的实际水平', '迅速取得资料'],answer:[0],analysis:'会计核算来记录企业的一切生产经营活动，并据此提出一些用货币反映的有关各种综合性经济指标的数据，如资产、负债、所有者权益、收入、费用和利润等。由于会计记录具有连续性、系统性、综合性等特点，因此，它是成本分析的重要依据；选项BD是业务核算；选项C是统计核算。',memory:'【口诀】"分部分项分析对象：主要分部分项工程"——分析对象。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'在施工成本分析的基本方法中，分析影响目标完成的积极因素和消极因素，这是通过(    )方法。',options:['本期实际指标与上期实际指标对比', '与本行业平均水平、先进水平对比', '将实际指标与目标指标对比', '采用不同性质的指标进行对比'],answer:[2],analysis:'①将实际指标与目标指标对比。以此检查目标完成情况，分析影响目标完成的积极因素和消极因素，以便及时采取措施，保证成本目标的实现。在进行实际指标与目标指标对比时，还应注意目标本身有无问题，如果目标本身出现问题，则应调整目标，重新评价实际工作。②本期实际指标与上期实际指标对比。通过本期实际指标与上期实际指标对比，可以看出各项技术经济指标的变动情况，反映施工管理水平的提高程度。③与本行业平均水平、先进水平对比。通过对比，可以反映本项目的技术和经济管理水平与行业的平均及先进水平的差距，进而采取措施提高本项目管理水平。',memory:'【口诀】"三算对比目的：找出偏差原因改进管理"——对比目的。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'在成本分析中，若发现人工费、材料费、施工机具使用费等项目大幅度超支，发现是属于规定的“政策性”亏损，则应采取(    )措施。',options:['将亏损转入下一个(月)季度', '从控制支出着手，把超支额压缩到最低限度', '向业主报告，申请变更', '降低工人工资'],answer:[1],analysis:'在成本分析中，若发现人工费、材料费、施工机具使用费等项目大幅度超支，则应该对这些费用的收支配比关系进行研究，并采取应对措施，防止今后再超支。如果是属于规定的"政策性"亏损，则应从控制支出着手，把超支额压缩到最低限度。',memory:'【口诀】"成本分析内容：完成情况影响因素趋势"——分析内容。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'有关材料成本分析，下列不属于计算材料储备资金的根据是(    )。',options:['材料运费及保管费', '日平均用量', '材料单价', '储备天数'],answer:[0],analysis:'材料储备资金是根据日平均用量、材料单价和储备天数(即从采购到进场所需要的时间)计算的。上述任何一个因素变动，都会影响储备资金的占用量。材料储备资金的分析，可以应用“因素分析法”。材料采购人员应该选择运距短的供应单位，尽可能减少材料采购的中转环节，缩短储备天数。',memory:'【口诀】"单位工程竣工分析：成本分析资源节超技术经济"——竣工分析。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'以下关于施工成本管理绩效考核的说法，正确的是(    )。',options:['施工成本管理绩效考核是指在施工项目实施前，对各级单位施工成本管理的成绩或失误进行总结与评价，考核成本降低的实际成果和成本指标完成情况的过程', '施工成本管理绩效考核应分层进行，包括企业对项目成本的考核、对项目管理机构可控责任成本的考核和项目经理对所属部门、施工队和班组的考核', '项目管理机构可控责任成本考核指标有项目经理责任目标总成本降低额和降低率、施工责任目标成本实际降低额和降低率两种', '施工成本管理绩效考核应分层进行，包括企业对项目成本的考核、对项目管理机构可控责任成本的考核、项目经理对所属部门、施工队员的考核和安全主管对所有班组的考核'],answer:[1],analysis:'施工成本管理绩效考核是指在施工项目实施过程中或项目完成后，对各级单位施工成本管理的成绩或失误进行总结与评价，考核成本降低的实际成果和成本指标完成情况的过程，故选项A错误；项目管理机构可控责任成本考核指标有项目经理责任目标总成本降低额和降低率、施工责任目标成本实际降低额和降低率、施工计划成本实际降低额和降低率三种，故选项C错误。施工成本管理绩效考核应分层进行，包括企业对项目成本的考核、对项目管理机构可控责任成本的考核和项目经理对所属部门、施工队和班组的考核，故选项D错误选项B正确。',memory:'【口诀】"成本考核作用：评价业绩激励改进"——考核作用。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'进行施工成本管理绩效考核时，从企业层面考核项目施工成本降低额的正确计算公式是（ ）。',options:['项目计划总成本-项目实际施工成本', '项目施工合同成本-项目实际施工成本', '施工计划总成本-工程竣工结算成本', '施工责任目标成本-工程竣工结算成本'],answer:[1],analysis:'项目施工成本降低额=项目施工合同成本-项目实际施工成本',memory:'【口诀】"成本考核层次：企业对项目，项目对部门班组"——考核层次。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'single',question:'砖基础工程施工成本的主要影响因素由工程量、砖消耗量和价格构成。上述三个影响因素的计划值分别为 500m³、529 块/m³和 0.26 元/块，实际值分别为 510m³、530 块/m³和 0.25 元/块。采用因素分析法进行成本分析时，按上述影响因素顺序第二次替代与第一次替代的差额是（ ）元。',options:['-2703', '132.6', '-1195', '1375.4'],answer:[1],analysis:'第二次替代与第一次替代的差额：510×（530-529）×0.26=132.6 元。',memory:'【口诀】"成本管理信息化：信息系统数据采集分析"——信息化。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'multi',question:'下列属于施工成本管理绩效考核方法的有(    )。',options:['关键绩效指标', '全视角反馈法', 'PDCA管理循环法', '平衡积分卡', '目标控制法'],answer:[0, 1, 2, 3],analysis:'E选项错误，应为目标管理法。',memory:'【口诀】"BIM成本管理：5D模拟量价款联动"——BIM应用。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'multi',question:'单位工程竣工成本分析，应包括的内容有(    )。',options:['竣工成本分析', '人工费对比分析', '主要资源节超对比分析', '材料储备资金分析', '主要技术节约措施及经济效果分析'],answer:[0, 2, 4],analysis:'单位工程竣工成本分析，应包括以下三方面内容：①竣工成本分析；②主要资源节超对比分析；③主要技术节约措施及经济效果分析。',memory:'【口诀】"成本风险：识别评估应对监控"——成本风险管理。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'multi',question:'施工成本分析方法中常用的比率法有(    )。',options:['构成比率法', '基数比率法', '相关比率法', '静态比率法', '动态比率法'],answer:[0, 2, 4],analysis:'常用的比率法有构成比率法、相关比率法、动态比率法。',memory:'【口诀】"成本与进度关系：相互影响综合平衡"——成本进度关系。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'multi',question:'施工成本分析的内容包括(    )。',options:['时间节点成本分析', '组织单元成本分析', '组成指标成本分析', '综合项目成本分析', '项目分解单元成本分析'],answer:[0, 1, 3],analysis:'施工成本分析的内容包括：时间节点成本分析、工作任务分解单元成本分析、组织单元成本分析、单项指标成本分析、综合项目成本分析。',memory:'【口诀】"成本与质量关系：质量成本平衡"——成本质量关系。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'multi',question:'下列属于施工成本分析的基本方法的有(    )。',options:['比较法', '连环置换法', '差额计算法', '比率法', '层次法'],answer:[0, 1, 2, 3],analysis:'施工成本分析的基本方法包括比较法、因素分析法、差额计算法、比率法等。因素分析法又称为连环置换法。',memory:'【口诀】"成本管理创新：理念方法手段创新"——管理创新。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'multi',question:'成本项目的分析方法包括(    )。',options:['人工费分析', '材料费分析', '管理费分析', '施工机具使用费分析', '成本盈亏平衡分析'],answer:[0, 1, 2, 3],analysis:'成本项目分析方法：(1)人工费分析；(2)材料费分析；(3)施工机具使用费分析；(4)管理费分析。',memory:'【口诀】"国际工程成本：汇率风险物价风险"——国际工程成本。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'multi',question:'关于分部分项工程成本分析资料来源的说法，正确的是(    )。',options:['预算成本来自投标报价成本', '实际成本来自施工任务单的实际工程量、实超人工和限额领料单的实耗材料', '投标报价成本来自预算成本', '目标成本来自施工预算', '成本偏差来自目标成本与预算成本的差额'],answer:[0, 3],analysis:'分部分项工程成本分析的资料来源为：预算成本来自投标报价成本，目标成本来自施工预算，实际成本来自施工任务单的实际工程量、实耗人工和限额领料单的实耗材料。',memory:'【口诀】"全过程成本管理：决策设计施工竣工"——全过程管理。',section:'6.4  施工成本分析与管理绩效考核'},
+  {type:'multi',question:'采用 PDCA 循环法进行施工成本管理绩效考核的不足有（ ）。',options:['不适合需要周期性考核的企业', '投入成本高', '会抑制各部门之间的协同合作', '难以持续提高管理成效', '过于强调计划性'],answer:[1, 4],analysis:'PDCA 管理循环法的缺点如下：①投入成本高；②过于强调计划性。总之，PDCA 管理循环法适用于需要周期性考核的企业。\n第7章  建设工程施工安全管理',memory:'【口诀】"成本管理目标：合理成本优质工程"——管理目标。',section:'6.4  施工成本分析与管理绩效考核'}
+];
+
+const PASSWORD = '6666';
+let currentIndex = 0, score = 0, revealed = false;
+let userAnswers = new Array(questions.length).fill(null);
+let feedbackList = [];
+const optLabels = 'ABCDEFGHIJ'.split('');
+
+let pwPassed = false;
+function checkPassword() {
+  const i = document.getElementById('pwInput'), e = document.getElementById('pwError');
+  if (i.value===PASSWORD) {
+    pwPassed = true;
+    document.getElementById('passwordOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+    init();
+  }
+  else { e.textContent='密码错误，请重新输入'; i.style.animation='shake 0.4s'; setTimeout(()=>i.style.animation='',400); }
+}
+function initPassword() {
+  document.body.style.overflow = 'hidden';
+  document.getElementById('pwInput').focus();
+  document.getElementById('pwInput').addEventListener('keydown', function(ev) { if (ev.key==='Enter') checkPassword(); });
+  document.getElementById('pwBtn').addEventListener('click', function() { checkPassword(); });
+}
+
+function init() {
+  const js=document.getElementById('jumpSelect');
+  questions.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 题`;js.appendChild(o);});
+  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();});
+  document.getElementById('totalNum').textContent=questions.length;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q=questions[currentIndex];
+  document.getElementById('questionCard').style.display='';
+  document.getElementById('finishCard').classList.remove('show');
+  document.getElementById('sectionTag').textContent=q.section||'';
+  document.getElementById('qBadge').textContent=q.type==='single'?'单选题':'多选题';
+  document.getElementById('qBadge').className='q-badge '+(q.type==='single'?'single':'multi');
+  document.getElementById('qNumber').textContent=`第 ${currentIndex+1} 题（共 ${questions.length} 题）`;
+  document.getElementById('qText').textContent=q.question;
+  document.getElementById('qScoreText').textContent=q.type==='single'?'1分':'2分';
+  document.getElementById('currentNum').textContent=currentIndex+1;
+  document.getElementById('progressBar').style.width=((currentIndex+1)/questions.length*100)+'%';
+  document.getElementById('jumpSelect').value=currentIndex;
+  const c=document.getElementById('optionsContainer');c.innerHTML='';
+  q.options.forEach((opt,i)=>{const d=document.createElement('div');d.className='option';d.innerHTML=`<div class="opt-label">${optLabels[i]}</div><div class="opt-text">${opt}</div><div class="opt-icon"></div>`;d.addEventListener('click',()=>toggleOption(i,d));c.appendChild(d);});
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='none';
+  if(userAnswers[currentIndex]!==null){revealed=true;showResult(false);}else{revealed=false;document.getElementById('confirmBtn').disabled=false;}
+}
+
+function toggleOption(index,div) {
+  if(revealed)return;const q=questions[currentIndex];
+  if(q.type==='single'){document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));div.classList.add('selected');userAnswers[currentIndex]=[index];}
+  else{div.classList.toggle('selected');const s=[];document.querySelectorAll('.option').forEach((el,i)=>{if(el.classList.contains('selected'))s.push(i);});userAnswers[currentIndex]=s.length>0?s:null;}
+  document.getElementById('confirmBtn').disabled=!userAnswers[currentIndex]||userAnswers[currentIndex].length===0;
+}
+
+function confirmAnswer() {
+  if(revealed){const a=userAnswers.every(a=>a!==null);if(a)showFinish();else nextQuestion();return;}
+  if(!userAnswers[currentIndex])return;revealed=true;showResult(true);
+}
+
+function showResult(isConfirm) {
+  const q=questions[currentIndex],ua=userAnswers[currentIndex].slice().sort(),ca=q.answer.slice().sort();
+  const ok=ua.length===ca.length&&ua.every((v,i)=>v===ca[i]);
+  if(isConfirm){if(ok)score+=q.type==='single'?1:2;else if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0){score+=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}}document.getElementById('scoreDisplay').textContent=score;}
+  document.querySelectorAll('.option').forEach((el,i)=>{el.classList.add('disabled');if(ca.includes(i)){if(ua.includes(i))el.classList.add('correct');else el.classList.add('reveal-correct');el.querySelector('.opt-icon').textContent='✓';}else if(ua.includes(i)){el.classList.add('wrong');el.querySelector('.opt-icon').textContent='✗';}});
+  if(ok){const p=q.type==='single'?1:2;document.getElementById('expAnswer').innerHTML=`<span style="color:#38a169">✓ 回答正确！+${p}分</span>`;}
+  else{let ps=0;if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0)ps=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}document.getElementById('expAnswer').innerHTML=`<span style="color:#e53e3e">✗ 回答错误${ps>0?'（部分正确 +'+ps+'分）':''}。正确答案：${ca.map(a=>optLabels[a]).join('')}</span>`;}
+  document.getElementById('expAnalysis').innerHTML=`<div class="ea-title">📝 解析</div>${q.analysis}`;
+  if(q.memory){document.getElementById('expMemory').innerHTML=`<div class="em-title">💡 记忆技巧</div>${q.memory}`;document.getElementById('expMemory').style.display='block';}else{document.getElementById('expMemory').style.display='none';}
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('confirmBtn').textContent='下一题 ▶';document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='';
+  if(isConfirm){const a=userAnswers.every(a=>a!==null);if(a)document.getElementById('confirmBtn').textContent='查看结果 🎉';}
+}
+
+function nextQuestion() { if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} }
+
+function showFinish() {
+  document.getElementById('questionCard').style.display='none';
+  document.getElementById('finishCard').classList.add('show');
+  const t=questions.reduce((s,q)=>s+(q.type==='single'?1:2),0),w=[];
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();if(!(u.length===c.length&&u.every((v,j)=>v===c[j])))w.push(i+1);});
+  document.getElementById('finalScore').textContent=`${score} / ${t}`;
+  document.getElementById('finalDetail').textContent=`共${questions.length}题，答对${questions.length-w.length}题，答错${w.length}题`;
+  document.getElementById('reviewBtn').style.display=w.length>0?'':'none';
+}
+
+function resetQuiz() { currentIndex=0;score=0;revealed=false;userAnswers=new Array(questions.length).fill(null);feedbackList=[];document.getElementById('scoreDisplay').textContent='0';renderQuestion(); }
+
+function openReview() {
+  const l=document.getElementById('reviewList');l.innerHTML='';let h=false;
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();
+  if(!(u.length===c.length&&u.every((v,j)=>v===c[j]))){h=true;const d=document.createElement('div');d.className='review-item';d.innerHTML=`<div class="ri-q">${i+1}. ${q.question}</div><div class="ri-row ri-user">你的答案：${u.map(a=>optLabels[a]).join('')}</div><div class="ri-row ri-correct">正确答案：${c.map(a=>optLabels[a]).join('')}</div><div class="ri-kp">📝 ${q.analysis}</div>`;d.style.cursor='pointer';d.addEventListener('click',()=>{closeReview();currentIndex=i;renderQuestion();});l.appendChild(d);}});
+  if(!h)l.innerHTML='<div class="review-empty">🎉 全部正确，没有错题！</div>';
+  document.getElementById('reviewModal').classList.add('show');
+}
+function closeReview(){document.getElementById('reviewModal').classList.remove('show');}
+function openFeedback(){document.getElementById('feedbackText').value='';document.getElementById('feedbackModal').classList.add('show');}
+function closeFeedback(){document.getElementById('feedbackModal').classList.remove('show');}
+function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});closeFeedback();}
+function openFeedbackSummary(){const l=document.getElementById('feedbackSummaryList');l.innerHTML='';feedbackList.forEach(fb=>{const d=document.createElement('div');d.className='fb-item';d.innerHTML=`<div class="fb-q">第${fb.qIndex+1}题：${fb.question}</div><div class="fb-content">${fb.content}</div>`;l.appendChild(d);});document.getElementById('feedbackSummaryModal').classList.add('show');}
+function closeFeedbackSummary(){document.getElementById('feedbackSummaryModal').classList.remove('show');}
+
+initPassword();
+
+</script>
+</body>
+</html>

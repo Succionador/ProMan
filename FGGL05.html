@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>范工管理 - 第1章 建设工程项目组织、规划与控制</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #2d3748; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.top-bar { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+.top-bar h1 { font-size: 18px; color: #4a5568; margin-bottom: 2px; font-weight: 600; }
+.top-bar .section-tag { font-size: 13px; color: #805ad5; font-weight: 500; margin-bottom: 14px; padding: 3px 10px; background: rgba(128,90,213,0.08); border-radius: 6px; display: inline-block; }
+.stats-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.progress-info { flex: 1; min-width: 200px; }
+.progress-text { font-size: 14px; color: #718096; margin-bottom: 6px; }
+.progress-text span { font-weight: 700; color: #5a67d8; }
+.progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+.score-box { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; padding: 8px 18px; border-radius: 10px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.score-box .label { font-weight: 400; font-size: 13px; opacity: 0.9; }
+.jump-select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #4a5568; background: #f7fafc; cursor: pointer; outline: none; transition: border-color 0.2s; }
+.jump-select:focus { border-color: #667eea; }
+.question-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+.q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.q-badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: white; }
+.q-badge.single { background: linear-gradient(135deg, #48bb78, #38a169); }
+.q-badge.multi { background: linear-gradient(135deg, #4299e1, #3182ce); }
+.q-score { font-size: 12px; color: #a0aec0; }
+.q-number { font-size: 15px; font-weight: 700; color: #4a5568; margin-bottom: 14px; }
+.q-text { font-size: 16px; line-height: 1.75; color: #2d3748; margin-bottom: 20px; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+.option:hover { border-color: #a3bffa; background: #f7faff; }
+.option.selected { border-color: #5a67d8; background: #ebf4ff; }
+.option.correct { border-color: #48bb78; background: #f0fff4; }
+.option.wrong { border-color: #fc8181; background: #fff5f5; }
+.option.reveal-correct { border-color: #48bb78; background: #f0fff4; }
+.option.disabled { pointer-events: none; }
+.opt-label { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #cbd5e0; color: #718096; transition: all 0.2s; }
+.option.selected .opt-label { background: #5a67d8; color: white; border-color: #5a67d8; }
+.option.correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.option.wrong .opt-label { background: #fc8181; color: white; border-color: #fc8181; }
+.option.reveal-correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.opt-text { font-size: 15px; line-height: 1.6; padding-top: 2px; color: #4a5568; }
+.opt-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 14px; color: white; margin-left: auto; }
+.option.correct .opt-icon { display: flex; background: #48bb78; }
+.option.wrong .opt-icon { display: flex; background: #fc8181; }
+.explanation { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: #f7fafc; border-left: 4px solid #5a67d8; display: none; animation: fadeIn 0.3s ease; }
+.explanation.show { display: block; }
+.explanation .exp-title { font-size: 14px; font-weight: 700; color: #5a67d8; margin-bottom: 8px; }
+.explanation .exp-answer { font-size: 15px; color: #2d3748; margin-bottom: 6px; }
+.explanation .exp-answer span { font-weight: 700; }
+.explanation .exp-analysis { font-size: 14px; color: #2c5282; margin-top: 10px; line-height: 1.7; padding: 10px 14px; background: #ebf8ff; border-radius: 8px; border-left: 3px solid #4299e1; }
+.explanation .exp-analysis .ea-title { font-weight: 700; color: #2b6cb0; }
+.explanation .exp-memory { font-size: 14px; color: #744210; margin-top: 12px; line-height: 1.7; padding: 10px 14px; background: #fffff0; border-radius: 8px; border-left: 3px solid #d69e2e; }
+.explanation .exp-memory .em-title { font-weight: 700; color: #975a16; }
+.btn-area { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+.btn { padding: 12px 32px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: #fff; color: #e53e3e; border: 2px solid #fed7d7; }
+.btn-secondary:hover { background: #fff5f5; border-color: #fc8181; }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.finish-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 48px 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; display: none; }
+.finish-card.show { display: block; }
+.finish-card .trophy { font-size: 64px; margin-bottom: 16px; }
+.finish-card h2 { font-size: 24px; color: #2d3748; margin-bottom: 8px; }
+.finish-card .final-score { font-size: 48px; font-weight: 800; color: #5a67d8; margin: 16px 0; }
+.finish-card .final-detail { font-size: 14px; color: #718096; margin-bottom: 24px; line-height: 1.8; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; }
+.modal h3 { font-size: 18px; color: #2d3748; margin-bottom: 16px; }
+.modal textarea { width: 100%; height: 120px; border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
+.modal textarea:focus { border-color: #667eea; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.modal-btns .btn { padding: 10px 24px; font-size: 14px; }
+.review-modal { background: white; border-radius: 16px; padding: 0; width: 92%; max-width: 600px; max-height: 80vh; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; display: flex; flex-direction: column; overflow: hidden; }
+.review-modal .review-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.review-modal .review-header h3 { margin-bottom: 0; font-size: 18px; color: #e53e3e; }
+.review-modal .review-close { width: 32px; height: 32px; border: none; background: #f7fafc; border-radius: 50%; font-size: 18px; cursor: pointer; color: #718096; display: flex; align-items: center; justify-content: center; }
+.review-modal .review-close:hover { background: #edf2f7; }
+.review-modal .review-list { padding: 16px 24px 24px; overflow-y: auto; flex: 1; }
+.review-item { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.review-item:last-child { margin-bottom: 0; }
+.review-item .ri-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.review-item .ri-row { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+.review-item .ri-user { color: #e53e3e; }
+.review-item .ri-correct { color: #38a169; }
+.review-empty { text-align: center; padding: 40px 20px; color: #38a169; font-size: 18px; }
+.fb-item { background: #fffff0; border: 1px solid #fefcbf; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.fb-item:last-child { margin-bottom: 0; }
+.fb-item .fb-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.fb-item .fb-content { font-size: 13px; color: #c05621; background: rgba(237, 137, 54, 0.08); padding: 10px 14px; border-radius: 8px; line-height: 1.6; }
+.password-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 999; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+.password-overlay.hidden { opacity: 0; pointer-events: none; }
+.password-card { background: white; border-radius: 20px; padding: 40px 36px; width: 90%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+.password-card .lock-icon { font-size: 48px; margin-bottom: 16px; }
+.password-card h2 { font-size: 20px; color: #2d3748; margin-bottom: 6px; }
+.password-card p { font-size: 14px; color: #a0aec0; margin-bottom: 24px; }
+.password-card input { width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; text-align: center; letter-spacing: 4px; outline: none; transition: border-color 0.2s; }
+.password-card input:focus { border-color: #667eea; }
+.password-card .pw-error { color: #e53e3e; font-size: 13px; margin-top: 10px; min-height: 20px; }
+.password-card .pw-btn { margin-top: 16px; width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.password-card .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(102,126,234,0.4); }
+.password-card .pw-btn:active { transform: translateY(0); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+</style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<body>
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-card">
+    <div class="lock-icon">🔒</div>
+    <h2>请输入访问密码</h2>
+    <p>本页面仅限授权用户使用</p>
+    <input type="password" id="pwInput" placeholder="请输入密码" autocomplete="off">
+    <div class="pw-error" id="pwError"></div>
+    <button class="pw-btn" id="pwBtn">进 入</button>
+  </div>
+</div>
+<div class="container">
+  <div class="top-bar">
+    <h1>📚 第1章 建设工程项目组织、规划与控制</h1>
+    <div class="section-tag" id="sectionTag"></div>
+    <div class="stats-row">
+      <div class="progress-info">
+        <div class="progress-text">做题进度：<span id="currentNum">1</span> / <span id="totalNum">125</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+      </div>
+      <div class="score-box"><span class="label">得分</span><span id="scoreDisplay">0</span></div>
+      <select class="jump-select" id="jumpSelect" title="跳转到指定题目"></select>
+    </div>
+  </div>
+  <div class="question-card" id="questionCard">
+    <div class="q-header">
+      <span class="q-badge" id="qBadge">单选题</span>
+      <span class="q-score" id="qScoreText"></span>
+    </div>
+    <div class="q-number" id="qNumber"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="explanation" id="explanation">
+      <div class="exp-title">📝 解析</div>
+      <div class="exp-answer" id="expAnswer"></div>
+      <div class="exp-analysis" id="expAnalysis"></div>
+      <div class="exp-memory" id="expMemory"></div>
+    </div>
+    <div class="btn-area">
+      <button class="btn btn-secondary" id="feedbackBtn" style="display:none" onclick="openFeedback()">⚠️ 题目/答案反馈</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="confirmAnswer()">确定</button>
+    </div>
+  </div>
+  <div class="finish-card" id="finishCard">
+    <div class="trophy">🎉</div>
+    <h2>练习完成！</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-detail" id="finalDetail"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="reviewBtn" onclick="openReview()" style="margin:0">❌ 查看错题</button>
+      <button class="btn btn-secondary" id="feedbackSummaryBtn" onclick="openFeedbackSummary()" style="margin:0;display:none">⚠️ 反馈汇总</button>
+      <button class="btn btn-primary" onclick="resetQuiz()" style="margin:0">🔄 重新做题</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal">
+    <h3>⚠️ 题目/答案反馈</h3>
+    <p style="font-size:14px;color:#718096;margin-bottom:12px;">请描述您认为有误的题目或答案，我们会尽快核实修正。</p>
+    <textarea id="feedbackText" placeholder="请输入您发现的问题..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeFeedback()">取消</button>
+      <button class="btn btn-primary" onclick="submitFeedback()">提交</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="reviewModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>❌ 错题汇总</h3>
+      <button class="review-close" onclick="closeReview()">✕</button>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackSummaryModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>⚠️ 反馈汇总</h3>
+      <button class="review-close" onclick="closeFeedbackSummary()">✕</button>
+    </div>
+    <div class="review-list" id="feedbackSummaryList"></div>
+  </div>
+</div>
+<script>
+const questions = [
+  {type:'single',question:'建设工程投资决策阶段的质量控制工作是（）。',options:['确定项目应采用的质量标准和管理方法', '编制项目质量控制工作计划', '确定项目应达到的质量目标和水平', '编制项目质量管理体系文件'],answer:[2],analysis:'建设工程投资决策阶段主要是确定建设工程应达到的质量目标及水平。',memory:'【口诀】"质量特性：适用耐久安全可靠经济环境"——六个质量特性。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'建设工程投资决策和建设实施的不同阶段对工程质量有着不同程度的影响。其中对工程质量有着决定性影响的是（）。',options:['工程投资决策', '工程勘察设计', '工程施工', '工程竣工验收'],answer:[1],analysis:'勘察设计阶段是影响工程质量的决定性阶段。',memory:'【口诀】"质量管理：确定方针目标，建立体系"——质量管理定义。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'下列工程建设各环节中，决定工程质量控制的关键阶段是（）。',options:['工程设计', '项目决策', '工程施工', '工程竣工验收'],answer:[2],analysis:'工程施工阶段是工程质量控制的关键阶段。',memory:'【口诀】"质量控制：满足质量要求"——质量控制定义。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'工程质量的形成过程是循序渐进的，直接影响工程最终质量的阶段是（）。',options:['工程投资决策', '工程勘察设计', '工程施工', '工程竣工验收'],answer:[2],analysis:'工程施工阶段是根据合同约定、设计文件和图纸要求，通过施工形成工程实体。这一阶段直接影响工程的最终质量。因此，工程施工阶段是工程质量控制的关键阶段。',memory:'【口诀】"质量保证：提供信任"——质量保证定义。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'工程质量影响因素中可变性最大的因素是（）。',options:['工程材料影响', '方法或工艺影响', '人影响', '环境影响'],answer:[2],analysis:'人因影响是工程质量影响因素中可变性最大的因素。在工程质量管理中，人的因素起着决定性作用。',memory:'【口诀】"质量改进：增强能力"——质量改进定义。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'在施工质量管理中，以控制人的因素为基本出发点而建立的管理制度是（）。',options:['见证取样制度', '专项施工方案论证制度', '执业资格注册制度', '建设工程质量监督管理制度'],answer:[2],analysis:'施工质量控制应以控制人的因素为基本出发点，C从控制人的角度控制质量。',memory:'【口诀】"PDCA循环：策划实施检查处置"——质量管理循环。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'影响建设项目施工质量的环境因素是（）。',options:['施工现场自然环境、施工作业环境和技术环境', '施工现场自然环境、施工作业环境和施工质量管理环境', '施工现场自然环境、技术环境和施工质量管理环境', '施工作业环境、技术环境和施工质量管理环境'],answer:[2],analysis:'环境因素有很多，主要指自然环境、技术环境和管理环境。【注意】没有现场作业因素。',memory:'【口诀】"全面质量管理：全员全过程全企业"——TQM特点。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'4M1E是影响工程质量的因素，其中控制工程质量的重要基础是（）。',options:['人', '工程材料', '方法或工艺', '机械设备'],answer:[1],analysis:'工程材料是指构成工程实体的原材料、半成品、成品、构配件等。这些材料是构成工程实体的物质条件，是工程实体质量的基础。加强材料质量控制，是控制工程质量的重要基础。',memory:'【口诀】"质量影响因素：人料机法环测"——4M1E+测。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'工程发生的质量问题，无论是由于哪一单位的原因造成，通常都是先由（）负责实施处理。',options:['建设单位', '施工单位', '设计单位', '监理单位'],answer:[1],analysis:'工程发生的质量问题，无论是由于哪一单位的原因造成，通常都是先由施工单位负责实施处理。',memory:'【口诀】"人的因素：资质培训意识"——人的因素控制。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'质量管理发展大致可分为质量检验阶段、统计质量控制阶段、全面质量管理阶段。属于统计质量控制阶段特点的是（）。',options:['用最经济的生产成本为消费者提供完全满意的优质产品', '通过让顾客满意和组织所有成员及社会受益而达到长期成功', '由检查员对产品进行检验，剔除不合格品', '对生产过程中的各道工序均用统计方法进行质量管理'],answer:[3],analysis:'选项A是全面质量管理阶段的宗旨，选项B是全面质量管理的目的，选项C是质量检验阶段的特点；统计质量控制阶段对生产过程中的各道工序均用统计方法进行质量管理，同时进行售后服务及用户意见反馈，以改进生产、控制产品合格率，故D正确。',memory:'【口诀】"材料因素：进场检验存储使用"——材料因素控制。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'某施工企业为了加强施工质量的全面管理，在单位范围内成立质量控制小组，设立奖励措施，加大技术培训，充分调动全员积极参与质量管理，该措施符合全面质量管理的（）特点。',options:['管理内容的全面性', '管理范围的全面性', '参加管理人员的全面性', '管理方法的多样性'],answer:[2],analysis:'全面质量管理“三全一多样”中，参加管理人员的全面性指包括领导、管理者、工人等全员参与，可组建QC小组调动全员积极性，故C符合题意。',memory:'【口诀】"机械因素：选型使用维护"——机械因素控制。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'在企业范围内组建QC小组，充分调动全员积极参与质量管理的兴致，该措施符合全面质量管理的（）特点。',options:['管理内容的全面性', '管理范围的全面性', '参加管理人员的全面性', '管理方法的多样性'],answer:[2],analysis:'全面质量管理“三全一多样”里，参加管理人员的全面性强调全员参与，组建QC小组调动全员积极性属于该特点。',memory:'【口诀】"方法因素：工艺方案技术措施"——方法因素控制。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'标准化工作包括了技术标准、管理标准、工作标准，它是一个完整的标准化管理体系，属于技术标准的是（）。',options:['质量管理标准', '方法标准', '通用工作标准', '工作程序'],answer:[1],analysis:'技术标准包括产品标准、基础标准、方法标准、安全卫生与环境保护标准等，故B正确；A属于管理标准，C、D属于工作标准。',memory:'【口诀】"环境因素：工程技术作业周边"——环境因素分类。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'所有计量器具准许投入使用或进行流转的必要条件是具有（）。',options:['说明书', '操作手册', '安全指导书', '合格证或标志'],answer:[3],analysis:'所有计量器具必须检验合格，具有合格证或标志，才准许投入使用或进行流转。',memory:'【口诀】"测量因素：仪器方法精度"——测量因素控制。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'建设工程项目质量管理体系通常是一个多层次结构体系，其中，由施工总承包单位建立的质量管理体系应属于质量管理体系的第（）层次。',options:['一', '三', '二', '四'],answer:[2],analysis:'建设工程项目质量管理体系分为多层次：第一层次是建设单位建立的体系；第二层次是由施工总承包单位建立的体系；第三层次是由各专业承包单位建立的体系，故C正确。',memory:'【口诀】"质量数据：收集整理分析利用"——数据管理。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'评价和诊断工程质量管理体系的有效性，一般由（）进行。',options:['项目监理单位', '项目管理的组织者', '项目咨询单位', '第三方认证机构'],answer:[1],analysis:'工程质量管理体系的有效性评价和诊断，一般由项目管理的组织者进行；第三方认证主要针对企业级质量管理体系。',memory:'【口诀】"统计方法：排列因果直方控制图"——常用统计方法。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'关于工程质量管理体系的说法，正确的是（）。',options:['涉及工程项目实施中所有的质量责任主体', '目的是用于建筑业企业的质量管理', '其控制目标是建筑业企业的质量管理目标', '对体系有效性进行第三方审核认证'],answer:[0],analysis:'工程质量管理体系涉及项目实施中所有质量责任主体（建设、设计、施工、监理等）；其目的是控制项目质量，而非企业质量管理；控制目标是项目质量目标，一般由项目组织者内部评价，无需第三方认证，故A正确。',memory:'【口诀】"质量特性细分：适用性能时间，安全可靠经济"——特性细分。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'建立工程质量管理体系的过程包括：①分析工程质量管理界面；②确立工程质量责任的网络架构；③制定工程质量管理制度；④编制工程质量计划。其正确的工作步骤是（）。',options:['②→③→①→④', '①→②→③→④', '②→①→③→④', '①→③→②→④'],answer:[0],analysis:'建立工程质量管理体系的步骤为：先确立工程质量责任的网络架构（②），接着制定工程质量管理制度（③），再分析工程质量管理界面（①），最后编制工程质量计划（④），即②→③→①→④。',memory:'【口诀】"质量管理原则：顾客领导全员，过程改进循证关系"——七原则。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'工程质量管理体系运行的核心机制是（）。',options:['约束机制', '反馈机制', '持续改进机制', '动力机制'],answer:[3],analysis:'动力机制是工程质量管理体系运行的核心机制，它源于各质量责任主体对利益的追求，驱动体系有效运转。',memory:'【口诀】"质量控制环节：事前事中事后"——三环节控制。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'建立工程质量管理体系的第一步工作是（）。',options:['制定工程质量管理制度', '确定工程质量责任的网络架构', '分析工程质量管理界面', '编制工作质量计划'],answer:[1],analysis:'建立工程质量管理体系的第一步是确定工程质量责任的网络架构，明确各责任主体的质量责任与关系。',memory:'【口诀】"事前控制：计划准备预防"——事前控制内容。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'工程质量管理体系持续改进机制所应用的原理是（）。',options:['动态控制', '及时响应', '全面监控', 'PDCA循环'],answer:[3],analysis:'持续改进机制应用PDCA循环原理，通过计划（Plan）、执行（Do）、检查（Check）、处理（Act）的循环，不断提升工程质量管理水平。',memory:'【口诀】"事中控制：过程检查调整"——事中控制内容。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'建设工程必须满足使用有效性、使用耐久性且维修方便，造型新颖，满足强度、刚度和稳定性的要求。可用于描述这些要求的建设工程固有特性的有（）。',options:['美观性', '实用性', '可靠性', '经济性', '安全性'],answer:[0, 2, 4],analysis:'使用有效性、使用耐久性且维修方便属于可靠性，C选项正确。造型新颖，属于美观性，A正确。满足强度、刚度和稳定性属于安全性，E正确。',memory:'【口诀】"事后控制：验收评价改进"——事后控制内容。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'工程质量影响因素中，环境因素对施工质量的影响具有复杂和多变的特点，属于管理环境因素的有（）。',options:['施工规范', '监控制度', '质量检验', '不可抗力', '质量管理制度'],answer:[1, 2, 4],analysis:'管理环境包括质量检验、监控制度、质量管理制度等。选项A为技术环境因素，选项D为自然环境因素。所以B、C、E正确。',memory:'【口诀】"质量影响因素关系：相互影响综合作用"——因素关系。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'影响工程质量的因素可归纳为人、材料、机械、方法及环境五大方面，属于方法或工艺影响因素的有（）。',options:['质量评价标准', '施工方案', '质量检验措施', '技术措施', '施工方法'],answer:[1, 3, 4],analysis:'方法或工艺是指施工方法、施工工艺、施工方案和技术措施等。施工方案的合理性、施工方法或工艺的先进性、技术措施是否适当，均会对工程质量产生较大影响。所以B、D、E正确。',memory:'【口诀】"人是最活跃因素：起决定性作用"——人的因素重要性。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'全面质量管理目的在于通过让顾客满意和组织所有成员及社会受益而达到长期成功的管理途径，属于全面质量管理基本特点的有（）。',options:['管理内容的全面性', '顾客要求的多样性', '参加管理人员的全面性', '管理范围的全面性', '管理方法的多样性'],answer:[0, 2, 3, 4],analysis:'全面质量管理基本特点为“三全一多样”，即管理内容全面、管理范围全面、参加管理人员全面、管理方法多样，故ACDE正确；B不属于其基本特点。',memory:'【口诀】"材料是基础：材料质量决定工程质量"——材料重要性。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'与建筑企业建立的质量管理体系相比，建设工程项目层面的质量管理体系的差异有（）。',options:['管理原则不同', '过程方法不同', '服务范围不同', '评价方式不同', '作用时效不同'],answer:[2, 3, 4],analysis:'两者管理原则、过程方法基本一致；差异在于：服务范围不同（项目体系针对特定项目，企业体系覆盖企业）、评价方式不同（项目体系由项目组织评价，企业体系可第三方认证）、作用时效不同（项目体系是一次性，企业体系是长效），故C、D、E正确。',memory:'【口诀】"机械是手段：机械化程度影响质量"——机械重要性。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'与建筑企业质量管理体系相比，工程项目质量管理体系的特点有（）。',options:['工程质量管理体系用于建筑企业的质量管理', '工程质量管理体系是针对某一个建筑企业服务的', '工程质量管理体系的管理目标是工程项目质量目标', '工程质量管理体系是一个一次性的质量工作体系', '工程质量管理体系的有效性需要进行第三方认证'],answer:[2, 3],analysis:'工程项目质量管理体系针对特定项目，目标是项目质量目标，是一次性体系；企业体系是长效、针对企业自身，第三方认证针对企业体系，故C、D正确。',memory:'【口诀】"方法是关键：工艺方法决定质量"——方法重要性。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'在大型群体工程项目中，第一层次质量控制体系可由（）的项目管理机构负责建立。',options:['建设单位', '设计总负责单位', '委托项目管理机构', '施工总承包单位', '工程总承包企业'],answer:[0, 2, 4],analysis:'第一层次质量控制体系由建设单位或其委托的项目管理机构、工程总承包企业负责建立；设计总负责、施工总承包属于后续层次，故A、C、E正确。',memory:'【口诀】"环境是条件：环境影响质量形成"——环境重要性。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'工程质量管理体系是工程项目管理组织的一个目标控制体系，其质量责任界面包括了静态界面和动态界面，属于静态界面确定依据的有（）。',options:['法律法规', '组织内部职能分工', '设计与施工单位之间的衔接配合关系', '合同条件E.设计单位之间的衔接配合关系'],answer:[0, 1, 3],analysis:'静态界面依据法律法规、组织内部职能分工、合同条件确定；动态界面指各单位之间的衔接配合关系（如设计与施工、设计单位之间），故C、E属于动态界面。',memory:'【口诀】"质量形成过程：决策设计施工验收"——质量形成阶段。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'工程质量管理体系的运行环境主要包括（）。',options:['项目的合同结构', '质量管理的资源配置', '质量管理的组织制度', '质量管理的动力机制', '质量管理的持续改进机制'],answer:[0, 1, 2],analysis:'工程质量管理体系运行环境包括：项目合同结构、质量管理资源配置、质量管理组织制度；动力机制、持续改进机制属于运行机制，故D、E不选。',memory:'【口诀】"决策阶段质量：需求分析可行性研究"——决策阶段。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'multi',question:'工程质量管理体系运行的约束机制，取决于（）。',options:['各质量责任主体对利益的追求', '质量信息反馈的及时性和准确性', '各质量责任主体内部的自我约束能力', '外部的监控效力', '工程项目管理文化建设的程度'],answer:[2, 3],analysis:'约束机制取决于各质量责任主体内部的自我约束能力，以及外部的监控效力；A属于动力机制，B属于反馈机制，E属于环境影响。',memory:'【口诀】"设计阶段质量：方案初步施工图"——设计阶段。',section:'5.1  工程质量影响因素及管理体系'},
+  {type:'single',question:'从理想角度考虑，为了获得100%的合格品，只有采用(    )才有可能达到目的。',options:['破坏性实验检验', '全数检验', '抽样检验', '部分检验'],answer:[1],analysis:'从理想角度考虑，为了获得100%的合格品，只有采用全数检验才有可能达到目的。但是，由于某些原因，工程实践中必须采用抽样检验方式。',memory:'【口诀】"施工阶段质量：形成实体关键阶段"——施工阶段重要性。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'为了检验钢筋混凝土梁的极限承载力，采用(    )检验方式。',options:['全数', '部分', '破坏性', '随机'],answer:[2],analysis:'破坏性检验，无法采取全数检验方式。例如：为了检验钢筋混凝土梁的极限承载力而进行破坏性试验，数据得到后，钢筋混凝土梁也被全部破坏。',memory:'【口诀】"竣工验收：质量确认最终环节"——竣工验收作用。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'当一批产品体积大、检验批量大，需要较大储存场所时，需要采用(    )形式。',options:['流动批', '稳定批', '检验批', '固定批'],answer:[0],analysis:'检验批有稳定批和流动批两种形式。所谓稳定批，是指将产品整批存放在一起，即批中所有单位产品是同时提交检验的。破坏性检验，无法采取全数检验方式。例如：为了检验钢筋混凝土梁的极限承载力而进行破坏性试验，数据得到后，钢筋混凝土梁也被全部破坏。只要条件允许，最好采用稳定批形式，其优点是容易进行抽样检验。当一批产品体积大、检验批量大，需要较大储存场所时，需要采用流动批形式。',memory:'【口诀】"项目可行性研究：多方案比较优选"——可研质量。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'第一级抽样从总体中抽取初级抽样单元，以后每一级抽样是在上一级抽样单元中抽取次一级的抽样单元，指的是随机抽样中的(    )。',options:['简单随机抽样', '系统随机抽样', '分层随机抽样', '分级随机抽样'],answer:[3],analysis:'随机抽样可分为简单随机抽样、系统随机抽样、分层随机抽样、分级随机抽样和整群随机抽样等。本题考核5种随机抽样的定义。',memory:'【口诀】"设计质量：决定工程固有质量"——设计质量重要性。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'将调查收集的原始数据，根据不同的目的和要求，按某一性质进行分组整理的分析方法。是指施工质量统计分析方法中的(    )。',options:['分层法', '调查表法（Kimmy真帅）', '因果分析法', '排列图法'],answer:[0],analysis:'分层法是指将调查收集的原始数据，根据不同的目的和要求，按某一性质进行分组整理的分析方法。',memory:'【口诀】"设计审查：方案初步施工图审查"——设计审查环节。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'在排列图法中，累计频率在80%~90%范围内的因素定位(    )因素。',options:['A类因素', 'B类因素', 'C类因素', 'D类因素'],answer:[1],analysis:'累计频率在0～80%，范围内的因素定为A类因素，即主要因素；累计频率在80%-90%范围内的因素定为B类因素，即次要因素；累计频率在90%～100%范围内的因素定为C类因素，即一般因素。A类因素是需要加强控制、重点管理的对象；对B类因素可按常规管理；对C类因素则可放宽管理，以利于将主要精力放在改善A类因素上。',memory:'【口诀】"施工图审查：强制性标准安全性"——施工图审查内容。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'使用相关图来观察分析两种质量数据之间相关关系时，散布点形成由左向右向下的一条直线带，属于(    )。',options:['正相关', '负相关', '不相关', '非线性相关'],answer:[1],analysis:'本题考核相关图中的6种类型。\n几种典型的相关图\n(a)正相关；(b)弱正相关；(c)不相关；(d)负相关；(e)弱负相关；(f)非线性相关',memory:'【口诀】"设计交底：设计向施工交底"——设计交底。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'判断工序的稳定性，推断工序质量规格标准的满足程度，分析不同因素对质量的影响的质量统计分析方法是(    )。',options:['直方图法', '调查表法', '因果分析法', '排列图法'],answer:[0],analysis:'本题考核直方图法的概念。直方图又称频数分布直方图，是用来反映产品质量数据分布状态和波动规律的统计分析方法。直方图的主要用途是：判断工序的稳定性；推断工序质量规格标准的满足程度；分析不同因素对质量的影响；计算工序能力等。',memory:'【口诀】"图纸会审：各方参与解决问题"——图纸会审。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'因取样时混批所致，如将两台设备、两种不同施工方法的产品混在一起或在两个不同批量中取样，直方图会出现(    )。',options:['折齿型', '缓坡型', '双峰型', '峭壁型'],answer:[2],analysis:'本题考核常见直方图形状。\n①正常型：中间高、两侧低，左右接近对称。\n②折齿型：分组不当或组距确定不当而造成的。\n③左(或右)缓坡型：操作中对上限(或下限)控制太严造成的。\n④孤岛型：原材料发生变化，或短时间内工人操作不熟练造成的。\n⑤双峰型：两种方法或者两组人施工，双方数据发生混淆造成。\n⑥峭壁型：数据收集不正确，去掉下限以下数据的人为因素造成。\n常见的直方图形状\n(a)正常型；(b)折齿型；(c)缓坡型；(d)孤岛型；(e)双峰型；(f)峭壁型',memory:'【口诀】"设计变更：程序审批不得随意"——设计变更管理。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'将总体分成若干互不重叠的群，每个群由若干个体组成总体中随机抽取若干个群，抽出的群中所有个体便组成样本，这种抽样方式为(    )。',options:['简单随机抽样', '系统随机抽样', '分层随机抽样', '整群随机抽样'],answer:[3],analysis:'整群随机抽样是指将总体分成若干互不重叠的群，每个群由若干个体组成，总体中随机抽取若干个群，抽出的群中所有个体便组成样本。',memory:'【口诀】"施工质量控制：自控为主监控为辅"——质量控制原则。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'关于抽样检验的说法，正确的是(    )。',options:['计量抽样检验是对单位产品的质量采取计数抽样的方法', '一次抽样检验涉及3个参数，二次抽样检验涉及5个参数', '一次抽样检验和二次抽样检验均为计量抽样检验', '一次抽样检验和二次抽样检验均涉及3个参数，即批量、样本数和合格判定数'],answer:[1],analysis:'选项A，计数抽样检验是对单位产品的质量采取计数抽样的方法。选项C，一次抽样检验和二次抽样检验均为计数抽样检验。选项D，—次抽样检验涉及3个参数(批量、样本数和合格判定数)，二次抽样检验均涉及5个参数(批量、第一次抽取的样本数、第二次抽取的样本数、第一次抽取样本时的不合格判定数和第二次抽取样本时的不合格判定数)。',memory:'【口诀】"施工准备控制：技术准备现场准备"——准备阶段控制。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'下列现场质量检查的方法中，属于感观检验法“看”的是(    )。',options:['结构表面是否有裂缝', '通过手感触摸进行检查鉴别', '运用敲击方法进行音感检查', '通过人工光源或反射光照射，仔细检查难以看清的部位'],answer:[0],analysis:'所谓“看”就是根据质量标准要求进行外观检查，例如结构表面是否有裂缝、混凝土振捣是否符合要求等。',memory:'【口诀】"施工过程控制：工序控制检查验收"——过程控制。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'通过手感触摸进行检查鉴别时，适合采用的检查手段是(    )。',options:['看', '摸', '敲', '照'],answer:[1],analysis:'所谓“摸”就是通过手感触摸进行检查鉴别。',memory:'【口诀】"竣工验收控制：最终检查确认"——竣工验收控制。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'下列施工现场质量检查项目中，适宜采用度量检测的是(    )。',options:['检测材料、构件的长度', '利用电工电子仪器检测电器设备', '利用物理力学专用仪器对材料机械性能进行检测', '射线探伤法'],answer:[0],analysis:'度量检测法是指利用工具和设备通过检测材料、构件、工程等的长度、质量、体积、密度等来判定工程质量情况工程实践中常用的度量检测工具和设备有钢尺、卡尺、塞尺、水平仪、经纬仪、激光测距仪、超声波探测仪、赫兹密度仪、K30密实度检测车等。',memory:'【口诀】"质量检验：自检互检专检"——三检制度。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'相关图中点的集合，反映了两种数据之间的散布状况，下图属于(    )。',options:['正相关', '弱正相关', '不相关', '负相关'],answer:[2],analysis:'不相关，散布点形成一团或平行于轴的直线带说明X变化不会引起Y的变化或其变化无规律，分析质量原因时可排除X因素。',memory:'【口诀】"隐蔽验收：隐蔽前验收记录"——隐蔽工程验收。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'工程建设中，常被用来检验电气安装工程中各种电器设备和材料的绝缘电阻值的检测方法是(    )。',options:['度量检测', '电性能检测', '机械性能检测', '无损检测'],answer:[1],analysis:'工程建设中，这电性能检测法常被用来检验电气安装工程中各种电器设备和材料的绝缘电阻值。',memory:'【口诀】"检验批验收：主控一般项目"——检验批验收。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'工程质量控制中采用因果分析图法的目的是(    )。',options:['找出工程中存在的主要质量问题', '分析、追溯质量缺陷产生的最根本原因', '全面分析工程中可能存在的质量问题', '动态地分析工程中的质量问题'],answer:[1],analysis:'因果分析图又称为质量特性因果图、鱼刺图或树枝图，是一种反映质量特性与质量缺陷产生原因之间关系的图形工具，可用来分析、追溯质量缺陷产生的最根本原因。',memory:'【口诀】"分项工程验收：检验批汇总"——分项工程验收。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'下列施工质量的物理检验方法中，属于无损检测的是(    )。',options:['钢材焊接质量的超声波探伤检测', '钢材抗拉、抗弯性能检测', '桩基静载试验', '给水管道的压力测试'],answer:[0],analysis:'B属于物理检验法，CD属于现场试验法。',memory:'【口诀】"项目质量特点：单件性过程性影响因素多"——质量特点。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'multi',question:'按控制图的用途分类，控制图可分为()。',options:['分析用控制图', '统计用控制图', '管理用控制图', '计量值控制图', '计数值控制图'],answer:[0, 2],analysis:'按控制图的用途分类，控制图可分为：分析用控制图和管理(控制)用控制图。①分析用控制图主要是用来调查分析生产过程是否处于控制状态。②管理用控制图主要用来控制生产过程，使之经常保持在稳定状态。',memory:'【口诀】"质量形成规律：分阶段逐步形成"——形成规律。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'multi',question:'按质量数据特点分类，控制图可分为()。',options:['分析用控制图', '统计用控制图', '管理用控制图', '计量值控制图', '计数值控制图'],answer:[3, 4],analysis:'按质量数据特点分类，控制图可分为：计量值控制图和计数值控制图。①计量值控制图主要适用于质量特性属于计量值的控制②计数值控制图通常用于控制质量数据中的计数值。',memory:'【口诀】"决策质量要求：科学决策民主决策"——决策要求。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'multi',question:'采用控制图观察分析时，下列哪些情况说明生产过程基本上处于稳定状态()。',options:['连续25点中没有一点在界限外或连续35点中最多一点在界限外', '连续100点中最多2点在界限外', '连续14点中至少有12点在中心线同一侧', '连续20点中至少有16点在中心线同一侧', '点子呈周期性变化'],answer:[0, 1],analysis:'分析用控制图中的点子同时满足以下两个条件时，可以认为生产过程基本上处于稳定状态：①连续25点中没有一点在界限外或连续35点中最多一点在界限外或连续100点中最多2点在界限外；②控制界限内的点子随机排列且没有缺陷。',memory:'【口诀】"设计质量控制：功能可靠经济美观"——设计质量要求。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'multi',question:'下列抽样方法中，可以代表总体(整批产品)的是()。',options:['简单随机抽样', '系统随机抽样', '分层随机抽样', '计数抽样', '计量抽样'],answer:[0, 1, 2],analysis:'只有用随机抽样，才能使抽取的样本代表总体(整批产品)。随机抽样可分为简单随机抽样、系统随机抽样、分层随机抽样、分级随机抽样和整群随机抽样等。',memory:'【口诀】"设计阶段划分：方案初步技术施工图"——设计阶段。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'multi',question:'关于因果分析图法应用的说法，正确的有()。',options:['—张分析图可以解决多个质量问题', '常采用QC小组活动的方式进行，有利于集思广益', '因果分析图法专业性很强，QC小组以外的人员不能参加', '通过因果分析图可以了解统计数据的分布特征，从而掌握质量能力状态', '分析时要充分发表意见，层层深入，排除所有可能的原因'],answer:[1, 4],analysis:'因果分析图法应用时的注意事项：(1)一个质量特性或一个质量问题使用一张图分析。(2)通常采用QC小组活动的方式进行，集思广益，共同分析。(3)必要时可以邀请小组以外的有关人员参与，广泛听取意见。(4)分析时要充分发表意见，层层深入，排除所有可能的原因。(5)在充分分析的基础上，由各参与人员采用投票或其他方式，从中选择1至5项多数人达成共识的最主要原因。D：直方图。',memory:'【口诀】"初步设计内容：设计说明图纸概算"——初步设计内容。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'multi',question:'采用控制图进行工程质量分析时，表明生产过程属于稳定状态的有()。',options:['质量点在控制界限内的排列呈周期性变化', '连续25点以上处于控制界限内', '连续7点以上呈上升排列', '连续35点中有1点超出控制界限', '连续100点中有不多于2点超出控制界限'],answer:[1, 3, 4],analysis:'分析用控制图中的点子同时满足以下两个条件时，可以认为生产过程基本上处于稳定状态：①连续25点中没有一点在界限外或连续35点中最多一点在界限外或连续100点中最多点在界限外；②控制界限内的点子随机排列且没有缺陷。',memory:'【口诀】"施工图设计：满足施工需要"——施工图设计要求。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'multi',question:'采用排列图法分析工程质量影响因素时，可将影响因素分为()。',options:['偶然因素', '主要因素', '系统因素', '次要因素', '一般因素'],answer:[1, 3, 4],analysis:'排列图法是利用排列图寻找影响质量主次因素的一种有效方法。实际应用中，通常按累计频率划分为(0%-80%)、(80%-90%)、(90%-100%)三部分，与其对应的影响因素分别为A\\B\\C三类。A类为主要因素，B类为次要因素，C类为一般因素。',memory:'【口诀】"设计审查内容：合规性安全性经济性"——审查内容。',section:'5.2  施工质量抽样检验和统计分析方法'},
+  {type:'single',question:'某工程承包商从一生产厂家购买了一批相同规格的预制构件，并将其整齐码放在现场。对这批构件进行进场检验时，宜采用的抽样方法是（）。',options:['简单随机抽样', '分层随机抽样', '系统随机抽样', '整群随机抽样'],answer:[0],analysis:'相同规格、整齐码放的构件，总体均匀，适合简单随机抽样。',memory:'【口诀】"施工质量控制目标：合同规范标准"——控制目标。',section:'5.3  施工质量控制'},
+  {type:'single',question:'工程施工中进行工序质量检验时，宜采用的随机抽样方法是（）。',options:['简单随机抽样', '系统随机抽样', '分级随机抽样', '分层随机抽样'],answer:[1],analysis:'工序质量检验通常按时间/顺序抽样，系统随机抽样（等距抽样）更适合连续生产的工序场景。',memory:'【口诀】"施工质量依据：合同图纸规范标准"——控制依据。',section:'5.3  施工质量控制'},
+  {type:'single',question:'由不同班组生产的同一种产品组成一个批，在这种情况下，考虑各班组生产的产品质量可能会有波动，为了获得有代表性的样本，应采用（）检验方法。',options:['分级随机抽样', '系统随机抽样', '分层随机抽样', '整群随机抽样'],answer:[2],analysis:'不同班组属于不同层次，分层随机抽样可按班组分层，保证样本代表性。',memory:'【口诀】"施工准备内容：技术准备组织准备现场准备"——准备内容。',section:'5.3  施工质量控制'},
+  {type:'single',question:'某产品质量检验采用二次抽样检验方案，已知：N=1000，n₁=40，n₂=60，C₁=1，C₂=4。第一次抽样，随机抽取n₁件产品进行检验，发现n₁中的不合格数d₁为2；二次随机抽取n₂件产品，检得d₂=3，则正确的结论是（）。',options:['经第一次抽样检验即可判定该批产品质量合格', '经第一次抽样检验即可判定该批产品质量不合格', '经第二次抽样检验即可判定该批产品质量合格', '经第二次抽样检验即可判定该批产品质量不合格'],answer:[3],analysis:'二次抽样规则：d₁=2>C₁=1，需二次抽样；总不合格数d=2+3=5>C₂=4，判定不合格。',memory:'【口诀】"技术准备：图纸会审技术交底测量"——技术准备。',section:'5.3  施工质量控制'},
+  {type:'single',question:'下列施工质量的物理检验方法中，属于无损检测的是（）。',options:['钢材焊接质量的超声波探伤检测', '钢材抗拉、抗弯性能检测', '桩基静载试验', '给水管道的压力测试'],answer:[0],analysis:'超声波探伤不破坏构件，属于无损检测；其余均为破坏性或功能测试。',memory:'【口诀】"现场准备：三通一平临时设施"——现场准备。',section:'5.3  施工质量控制'},
+  {type:'single',question:'关于排列图法的说法，不正确的是（）。',options:['排列图法是用来分析影响质量主次因素的有效方法', '排列图由两个纵坐标、一个横坐标、若干个连起来的直方形和一条曲线组成', '排列图法可将质量影响因素分为主要因素、次要因素和一般因素', '将累计频率在0～80%范围内的因素定为C类因素，即一般因素，可放宽管理'],answer:[3],analysis:'0～80%为A类主要因素，80%～90%为B类次要因素，90%～100%为C类一般因素，D错误。',memory:'【口诀】"工序质量控制：人料机法环控制"——工序控制。',section:'5.3  施工质量控制'},
+  {type:'single',question:'采用相关图法分析工程质量时，散布点基本形成由左至右向上变化的一条直线带，说明两变量之间的关系为（）。',options:['负相关', '不相关', '正相关', '弱正相关'],answer:[2],analysis:'左至右向上的直线带是典型正相关。',memory:'【口诀】"质量控制点：关键部位薄弱环节"——质量控制点设置。',section:'5.3  施工质量控制'},
+  {type:'single',question:'工程质量统计分析相关图中，散布点形成由左至右向下分布的较分散的直线带，表明两变量之间存在（）关系。',options:['不相关', '正相关', '弱正相关', '弱负相关'],answer:[3],analysis:'左至右向下、较分散，属于弱负相关。',memory:'【口诀】"成品保护：防护包裹覆盖封闭"——成品保护措施。',section:'5.3  施工质量控制'},
+  {type:'single',question:'关于控制图种类的说法，正确的是（）。',options:['按控制图的用途分类，控制图可分为分析用控制图和管理（控制）用控制图', '分析用控制图主要是用来控制生产过程，使之经常保持在稳定状态', '绘制分析用控制图时，一般需连续抽取15～20组样本数据，计算控制界限', '管理用控制图主要是用来调查分析生产过程是否处于控制状态'],answer:[0],analysis:'分析用控制图用于调查状态，管理用控制图用于控制过程；绘制分析用控制图需20～25组数据，B、C、D错误。',memory:'【口诀】"质量验收层次：检验批分项分部单位"——验收层次。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'关于检验批的说法，正确的有（）。',options:['检验批有稳定批和流动批两种形式，只要条件允许，最好采用稳定批形式', '构成一批的所有单位产品，不应有本质差别，只能有随机波动', '一批产品所包含的产品总数称为批量，批量大小有统一规定', '以某个质量特性的平均值为质量目标，属于采用计数方法衡量一批产品质量', '以批不合格品率为质量指标，属于采用计量方法衡量一批产品质量'],answer:[0, 1],analysis:'批量大小无统一规定，C错误；以平均值为目标属于计量方法，D错误；以不合格品率为指标属于计数方法，E错误。',memory:'【口诀】"检验批划分：楼层施工段变形缝"——划分原则。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'按检验目的不同，抽样检验可分为（）。',options:['监督检验', '验收检验', '计量抽样检验', '计数抽样检验', '调整型抽样检验'],answer:[0, 1],analysis:'按检验目的分为监督检验、验收检验；计量/计数是按质量特征分类，调整型是按抽样方案分类。',memory:'【口诀】"分项工程划分：工种材料工艺设备"——划分原则。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'关于抽样检验的说法，正确的有（）。',options:['按产品质量特征不同，抽样检验可分为计数抽样检验和计量抽样检验', '在抽样检验中只是利用计量检验结果，就称为计量抽样检验', '计数抽样检验具有使用简便、运用范围广泛等优点', '按抽取样本次数不同，抽样检验可分为一次、二次和连续抽样检验', '一次抽样检验和二次抽样检验涉及的参数均为5个'],answer:[0, 1, 2],analysis:'抽样次数分类含一次、二次、多次、序贯，D错误；一次抽样参数为3个，二次为5个，E错误。',memory:'【口诀】"分部工程划分：专业性质建筑部位"——划分原则。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'施工质量抽样检验中，与计数抽样检验相比，计量抽样检验的优点有（）。',options:['所需样本数量较少', '使用简便', '样本信息利用充分', '运用范围广泛', '检验结果可信度高'],answer:[0, 2],analysis:'计量抽样检验样本量少、信息利用充分；计数抽样更简便、范围广，故B、D、E属于计数抽样特点。',memory:'【口诀】"施工质量验收统一标准：GB50300"——验收标准。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'下列施工质量检验方法中，属于观感检验法的有（）。',options:['检查结构表面是否有裂缝', '利用磁场磁粉探查焊缝缺陷', '水泥砂浆的抗压性能检测', '利用小锤检查面砖铺贴质量', '检查管道井内管线、设备安装质量'],answer:[0, 3, 4],analysis:'观感检验靠感官判断；B属于物理无损检验，C属于理化试验。',memory:'【口诀】"检验批合格：主控全部合格，一般抽样合格"——检验批合格标准。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'下列施工质量检验方法中，属于物理检验法的有（）。',options:['利用全站仪复查轴线偏差', '检测水泥、钢材的化学成分', '电器设备动作试验', '检验避雷接地的电阻值', '建筑材料密度的测定'],answer:[0, 3, 4],analysis:'物理检验靠物理量测量；B属于化学分析，C属于功能试验。',memory:'【口诀】"分项工程合格：检验批全部合格"——分项合格标准。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'关于施工质量统计分析方法的说法，正确的有（）。',options:['分层法是最基本方法，通常先用分层法将原始数据分组，再用其他方法进行分析', '调查表法是利用专门设计的统计表对质量数据收集整理，并精确进行原因分析的方法', '因果分析图法可用来分析、追溯质量缺陷产生的最根本原因', '控制图法是用来观察分析两种质量数据之间相关关系的图形方法', '直方图法是用来反映产品质量数据分布状态和波动规律的统计分析方法'],answer:[0, 2, 4],analysis:'调查表法仅收集数据，不精确分析原因，B错误；相关图法分析相关关系，D错误。',memory:'【口诀】"分部工程合格：分项全部合格，资料完整"——分部合格标准。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'关于因果分析图法应用的说法，正确的有（）。',options:['一张因果分析图可以分析多个质量问题', '通常采用QC小组活动的方式进行，有利于集思广益', '因果分析图法专业性很强，QC小组以外的成员不能参加', '是反映质量特性与质量缺陷产生原因之间关系的图形工具', '在充分分析的基础上，从中选择1～5项多数人达成共识的最主要原因'],answer:[1, 3, 4],analysis:'一张图只能分析一个质量问题，A错误；QC小组外成员可参与，C错误。',memory:'【口诀】"单位工程合格：分部全部合格，资料完整"——单位合格标准。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'对某模板工程表面平整度、截面尺寸、平面水平度、垂直度、标高等项目进行抽样检查，按照排列图法对抽样数据进行数据分析，发现其质量问题累计频率分别30%、60%、75%、89%和100%，则A类质量问题包括（）。',options:['表面平整度', '垂直度', '截面尺寸', '标高', '平面水平度'],answer:[0, 2, 4],analysis:'累计频率0～80%为A类，对应表面平整度（30%）、截面尺寸（60%）、平面水平度（75%）。',memory:'【口诀】"观感质量：好一般差综合评价"——观感质量验收。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'直方图的主要用途是（）。',options:['判断工序的稳定性', '推断工序质量规格标准的满足程度', '分析不同因素对质量的影响', '计算工序能力', '反映质量特性与质量缺陷产生原因之间关系'],answer:[0, 1, 2, 3],analysis:'直方图用于分布状态分析、工序稳定性、规格满足度、工序能力计算；E是因果分析图用途。',memory:'【口诀】"不合格处理：返修加固返工报废"——不合格品处理。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'采用直方图法分析混凝土预制构件质量时，出现折齿型直方图的原因是（）。',options:['数据分组不当（Kimmy真帅）', '原材料发生变化', '短时间内工人操作不熟练', '组距确定不当', '施工操作中控制过严'],answer:[0, 3],analysis:'折齿型直方图由数据分组不当或组距确定不当导致；B为双峰型，C为孤岛型，E为陡壁型。',memory:'【口诀】"质量事故分级：一般较大重大特大"——事故分级。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'分析用控制图中，生产过程基本上处于稳定状态的是（）。',options:['点子排列显示呈周期性变化', '控制界限内的点子随机排列且没有缺陷', '连续25点中没有一点在界限外', '中心线两侧有7点连续上升', '连续11点中有10点在中心线同一侧'],answer:[1, 2],analysis:'周期性变化、7点连续上升、11点中10点同侧均为异常状态，A、D、E错误。',memory:'【口诀】"事故报告：24小时内上报"——事故报告时限。',section:'5.3  施工质量控制'},
+  {type:'multi',question:'采用控制图法分析工序质量状况时，可判定为生产状态异常的情形有（）。',options:['连续3点至少有2点落在二倍标准差与三倍标准差界限内', '连续7点至少有3点落在二倍标准差与三倍标准差界限内', '连续7点在中心线同一侧', '连续11点至少有9点在中心线同一侧E.连续20点至少有5点在中心线同一侧'],answer:[0, 1, 2],analysis:'异常判定规则：连续3点至少2点在2σ~3σ界内；连续7点至少3点在2σ~3σ界内；连续7点同侧；连续11点至少9点同侧等；E不符合异常判定标准。',memory:'【口诀】"事故调查：调查组现场调查"——事故调查。',section:'5.3  施工质量控制'},
+  {type:'single',question:'下列属于施工质量事故的指导责任事故的是(    )。',options:['降低工程质量标准造成的质量事故', '由于操作人员违规操作造成的质量事故', '浇筑混凝土时随意加水造成的质量事故', '工序操作中不按操作规程进行操作造成的质量事故。'],answer:[0],analysis:'指导责任事故。工程施工过程中，由于指导或领导失误而造成的质量事故，如工程负责人不按规范规程组织施工、盲目赶工、强令他人违章作业、降低工程质量标准等造成的质量事故。',memory:'【口诀】"事故原因分析：技术管理人为"——原因分类。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'某质量事故造成4人死亡，60人重伤，直接经济损失1.2亿。该事故属于(    )。',options:['一般事故', '较大事故', '重大事故', '特别重大事故'],answer:[3],analysis:'施工质量事故分为以下4个等级：\n(1)特别重大事故，是指造成30人及以上死亡，或者100人及以上重伤，或者1亿元及以上直接经济损失的事故。\n(2)重大事故，是指造成10人及以上30人以下死亡，或者50人及以上100人以下重伤，或者5000万元及以上1亿元以下直接经济损失的事故。\n(3)较大事故，是指造成人及以上10人以下死亡，或者10人及以上50人以下重伤，或者1000万元及以上5000万元以下直接经济损失的事故。\n(4)一般事故，是指造成3人以下死亡，或者10人以下重伤，或者100万元及以1000万元以下直接经济损失的事故。',memory:'【口诀】"事故处理：技术处理责任追究"——事故处理。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'采用不适宜的施工方法或工艺等引发的质量事故，属于事故按原因分类中的(    )。',options:['技术原因', '管理原因', '社会原因', '经济原因'],answer:[0],analysis:'因技术原因引发的质量事故。在工程实施过程中，由于设计、施工技术上的失误而造成的质量事故。主要包括：结构设计计算错误；地质情况估计错误；盲目采用技术尚未成熟、实际应用中未得到充分实践检验验证其可靠的新技术；采用不适宜的施工方法或工艺等引发的质量事故。',memory:'【口诀】"质量缺陷处理：修补返工不处理"——缺陷处理。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'进料检验不严格等引发的质量事故，属于事故按原因分类中的(    )。',options:['技术原因', '管理原因', '社会原因', '经济原因'],answer:[1],analysis:'因管理原因引发的质量事故。由于管理不完善或失误而引发的质量事故。主要包括：施工单位的质量管理体系不完善；质量检验制度不严密，质量控制不严；质量管理措施落实不力；检测仪器设备管理不善而失准；进料检验不严格等引发的质量事故。',memory:'【口诀】"保修责任：承包商保修期责任"——保修责任。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'施工质量控制应坚持(    )的原则。',options:['质量第一', '安全第一', '预防为主', '综合治理'],answer:[2],analysis:'施工质量控制应坚持“预防为主”的原则，事先对影响施工质量的各种因素加以控制，而不是消极被动地等出现质量问题再进行处理。',memory:'【口诀】"保修期限：法定最低约定优先"——保修期限。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'未经可行性研究、不做调查分析就拍板定案，属于形成施工质量事故的(    )原因。',options:['违反有关法规和工程合同规定', '违反工程建设程序', '施工与管理失控', '设计计算失误'],answer:[1],analysis:'违反工程建设程序：工程建设程序是工程建设客观规律的反映，但有些工程不按工程建设程序办事，例如，未经可行性研究、不做调查分析就拍板定案；未搞清工程地质、水文情况等条件就仓促开工；边设计、边施工，任意修改设计，不按图纸施工；工程竣工不进行试车运行，未经验收就交付使用等，这些常常是导致工程质量事故的重要原因。',memory:'【口诀】"质量保证金：3%缺陷期满后退还"——质保金。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'违法转包或分包，属于形成施工质量事故的(    )原因。',options:['违反有关法规和工程合同规定', '违反工程建设程序', '施工与管理失控', '设计计算失误'],answer:[0],analysis:'本题考核施工质量事故的成因分析。\n违背工程建设基本规律：\n(1)违反工程建设程序。工程建设程序是工程建设客观规律的反映，但有些工程不按工程建设程序办事，例如，未经可行性研究、不做调查分析就拍板定案；未搞清工程地质、水文情况等条件就仓促开工；边设计、边施工，任意修改设计，不按图纸施工；工程竣工不进行试车运行，未经验收就交付使用等，这些常常是导致工程质量事故的重要原因。\n(2)违反有关法规和工程合同规定。例如，无证设计、无证施工、越级设计、越级施工，工程招标投标中不公平竞争，超低价中标，违法转包或分包，擅自修改设计，不按图纸施工等。',memory:'【口诀】"质量投诉：受理调查处理回复"——投诉处理。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'盲目套用图纸，采用不正确的结构方案，属于形成施工质量事故的(    )原因。',options:['违反有关法规和工程合同规定', '违反工程建设程序', '施工与管理失控', '设计计算失误'],answer:[3],analysis:'本题考核施工质量事故的成因分析。',memory:'【口诀】"质量监督：政府监督社会监理"——监督体系。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'未经设计单位同意，擅自修改设计，属于形成施工质量事故的(    )原因。',options:['违反有关法规和工程合同规定', '违反工程建设程序', '施工与管理失控', '设计计算失误'],answer:[2],analysis:'本题考核施工质量事故的成因分析。施工与管理失控是造成大量质量事故的常见原因，主要表现在以下几方面：\n(1)未经设计单位同意，擅自修改设计；或不按图施工。例如，将铰接做成刚接将简支梁做成连续梁；用光圆钢筋代替异型钢筋等，导致结构破坏。挡土墙不按图设滤水层、排水孔，导致压力增大，墙体破坏或倾覆。\n(2)图纸未经会审即仓促施工；或不熟悉图纸，盲目施工。\n(3)不按有关施工规范和操作规程施工。例如，浇筑混凝土时振捣不良，造成薄弱部位：砖砌体包心砌筑，上下通缝，灰浆不均匀饱满等，均能导致砖墙或砖柱破坏。\n(4)不懂装懂，蛮干施工，例如，将钢筋混凝土预制梁倒置吊装；将悬挑结构钢筋放在受压区等，均会导致结构破坏，造成严重后果。\n(5)管理混乱，施工方案考虑不周，施工顺序错误，技术交底不清，违章作业，疏于检查、验收等，均可能导致质量事故。',memory:'【口诀】"质量检测：第三方检测机构"——质量检测。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'下列关于技术复核与技术核定工作，说法正确的是(    )。',options:['进行图纸会审属于技术核定', '工程定位引测点的复测属于技术核定', '进行设计交底属于技术复核', '对钢筋混凝土结构中钢筋的安装位置和锚固情况进行检测属于技术核定'],answer:[2],analysis:'①技术复核。对工程实施全过程中的关键过程、关键工序和特殊过程及容易发生质量问题的部位，进行技术复核是保证工程质量、满足设计和合同规定的重要手段。如图纸会审或设计交底，工程定位引测点的复测，钢筋混凝土结构中钢筋的安装位置、规格、数量、连接及锚固情况的复核等，都属于技术复核的工作内容。\n②技术核定。技术核定是指为顺利完成工程施工，由施工单位所出具，涉及合理施工措施(方案、方法、工艺、措施)等技术事宜，并经建设单位和有关单位共同核定的凭证。',memory:'【口诀】"竣工验收备案：15日内备案"——备案时限。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'下列不属于施工质量事故处理依据的是(    )。',options:['法律法规', '合同文件', '工程建设标准', '项目管理制度'],answer:[3],analysis:'施工质量事故处理依据：(1)法律法规及政策；(2)合同文件；(3)工程建设标准；(4)企业内部管理制度。',memory:'【口诀】"验收合格标准：符合设计符合规范资料完整"——合格标准。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'工程事故发生后，相关事故处理程序说法不正确的是(    )。',options:['单位负责人接到报告后，应于lh内向事故发生地县级以上人民政府住房和城乡建设主管部门及有关部门报告', '住房和城乡建设主管部门逐级上报事故情况时，每级上报时间不得超过2h', '事故报告后出现新情况，以及事故发生之日起20日内伤亡人数发生变化的，应当及时补报', '国务院住房和城乡建设主管部门接到重大和特别重大事故的报告后，应当立即报告国务院'],answer:[2],analysis:'C错误，事故报告后出现新情况，以及事故发生之日起30日内伤亡人数发生变化的，应当及时补报。',memory:'【口诀】"验收程序：自检申请组织验收"——验收程序。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'下列关于事故调查组及其职责，说法不正确的是(    )。',options:['工程质量事故调查组由事故发生地的市、县以上住房和城乡建设主管部门或国务院有关主管部门组织成立', '特别重大事故由国务院或国务院授权有关部门组织事故调查组进行调查', '县级人民政府可以直接组织事故调查组进行调查，也可以授权或委托有关部门组织事故调查组进行调查', '未造成人员伤亡的一般事故，市级人民政府也可以委托事故发生单位组织事故调查组进行调查'],answer:[3],analysis:'未造成人员伤亡的一般事故，县级人民政府也可以委托事故发生单位组织事故调查组进行调查。',memory:'【口诀】"检验批验收组织：监理工程师组织"——验收组织。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'根据质量事故责任划分，“工程负责人不按质量标准进行控制和检验，降低施工质量标准而造成的质量事故”属于(    )。',options:['技术原因引发的质量事故', '管理原因引发的质量事故', '操作责任事故', '指导责任事故'],answer:[3],analysis:'按事故责任分类，分为指导责任事故、操作责任事故及自然灾害事故。指导责任事故：指由于工程指导或领导失误而造成的质量事故。例如，由于工程负责人不按规范指导施工，强令他人违章作业，或片面追求施工进度，放松或不按质量标准进行控制和检验，降低施工质量标准等而造成的质量事故。',memory:'【口诀】"分项工程验收组织：监理工程师组织"——验收组织。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'某工程混凝土浇筑过程中，因工人直接浇筑高度超出施工方案要求造成质量事故，该事故按照事故责任分类属于(    )。',options:['操作责任事故', '指导责任事故', '技术责任事故', '管理责任事故'],answer:[0],analysis:'操作责任事故：指在施工过程中，由于实施操作者不按规程和标准实施操作，而造成的质量事故。例如，浇筑混凝土时随意加水，或振捣疏漏造成混凝土质量事故等。',memory:'【口诀】"分部工程验收组织：总监组织"——验收组织。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'按事故产生原因分类“检测仪器设备管理不善而失准而造成的质量事故”属于(    )。',options:['技术原因', '管理原因', '社会原因', '经济原因'],answer:[1],analysis:'由于管理不完善或失误而引发的质量事故。主要包括：施工单位的质量管理体系不完善；质量检验制度不严密，质量控制不严；质量管理措施落实不力；检测仪器设备管理不善而失准；进料检验不严格等引发的质量事故。',memory:'【口诀】"单位工程验收组织：建设单位组织"——验收组织。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'施工质量事故预防措施中，(    )是提高工程建设质量和经济效果的必要保证。',options:['严格把好建筑材料及制品的质量关', '做好必要的技术复核、技术核定工作', '坚持按工程建设程序办事', '加强施工过程组织管理'],answer:[2],analysis:'坚持按工程建设程序办事，严格遵循和坚持按工程建设程序办事是提高工程建设质量和经济效果的必要保证。',memory:'【口诀】"验收参与方：建设监理施工设计"——参与方。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'集料中活性化硅会导致碱集料反应，使混凝土产生(    )。',options:['爆裂', '脆性破坏', '断裂', '裂缝'],answer:[3],analysis:'钢筋物理力学性能不良会导致钢筋混凝土结构产生裂缝或脆性破坏；集料中活性化硅会导致碱集料反应，使混凝土产生裂缝；水泥安定性不良，会造成混凝土爆裂；预制构件断面尺寸不足，支撑锚固长度不足，未可靠建立预应力值，漏放或少放钢筋，板面开裂等，均可能出现断裂、坍塌事故。',memory:'【口诀】"质量事故特征：危害性复杂性可变性"——事故特征。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'下列不属于施工质量事故的成因的是(    )。',options:['社会、经济原因', '设计计算失误', '施工与管理失控', '自然条件影响'],answer:[0],analysis:'施工质量施工成因包括：1)违背工程建设基本规律；2)工程地质勘察失误或地基处理失误；3)设计计算失误；4)材料构配件不合格；5)施工与管理失控；6)自然条件影响。A属于按事故产生原因分类。',memory:'【口诀】"事故分级标准：人员伤亡直接经济损失"——分级标准。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'single',question:'技术核定是指为顺利完成工程施工，由(    )所出具，涉及合理施工措施(方案、方法、工艺、措施)等技术事宜，并经(    )和有关单位共同核定的凭证',options:['施工单位、建设单位', '建设单位、建设单位', '施工单位、监理单位', '设计单位、施工单位'],answer:[0],analysis:'技术核定是指为顺利完成工程施工，由施工单位所出具，涉及合理施工措施(方案、方法、工艺、措施)等技术事宜，并经建设单位和有关单位共同核定的凭证。',memory:'【口诀】"一般事故：3人以下死亡，10人以下重伤"——一般事故。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'下列属于事故调查报告的内容有()。',options:['事故发生单位概况', '事故的简要经过', '事故造成的人员伤亡和直接经济损失', '已经采取的措施', '事故责任的认定和事故责任者的处理建议'],answer:[0, 2, 4],analysis:'本题考核事故报告和事故调查报告内容的区别。B，D选项属于事故报告的内容。\n事故报应包括下列内容：①事故发生单位概况；②事故发生的时间、地点以及事故现场情况；③事故的简要经过；④事故已经造成或者可能造成的伤亡人数(包括下落不明的人数)和初步估计的直接经济损失；⑤已经采取的措施；⑥其他应当报告的情况。\n事故调查报告应包括下列内容：①事故发生单位概况；②事故发生经过和事故救援情况；③事故造成的人员伤亡和直接经济损失；④事故发生的原因和事故性质；⑤事故责任的认定和事故责任者的处理建议；⑥事故防范和整改措施。',memory:'【口诀】"较大事故：3-10人死亡，10-50人重伤"——较大事故。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'下列关于工程质量缺陷及事故处理的基本方法，说法正确的有()。',options:['对混凝土结构局部出现的损伤，当这些损伤仅仅在结构的表面或局部，不影响其使用和外观，可进行返修处理', '对混凝土结构出现的裂缝，当裂缝宽度不大于0.2mm时，可采用嵌缝密闭法', '增大截面加固法、外包角钢加固法可用于混凝土结构的加固', '某防洪堤坝填筑压实后，其压实土的干密度未达到规定值，经核算将影响土体的稳定且不满足抗渗能力的要求，须进行加固处理', '有的工业建筑物出现放线定位偏差，且严重超过规范规定，若要纠正会造成重大经济损失，但经分析论证，其偏差不影响生产工艺和正常使用，在外观上也无明显影响，可不作处理'],answer:[0, 2, 4],analysis:'B选项错误，当裂缝宽度大于0.3mm时，可采用嵌缝密闭法。D选项错误，压实土的干密度未达到规定值，经核算将影响土体的稳定且不满足抗渗能力的要求，须挖除不合格土，重新填筑，进行返工处理。',memory:'【口诀】"重大事故：10-30人死亡，50-100人重伤"——重大事故。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'下列质量事故后果属于重大事故有()。',options:['造成20人死亡', '造成5人死亡', '造成51人重伤', '造成16人重伤', '造成1200万直接经济损失'],answer:[0, 2],analysis:'BDE属于较大事故。',memory:'【口诀】"特大事故：30人以上死亡，100人以上重伤"——特大事故。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'事故按责任分类，施工质量事故可分为()。',options:['指导责任事故', '操作责任事故', '技术责任事故', '管理责任事故', '社会责任事故'],answer:[0, 1],analysis:'按事故责任分类，施工质量事故可分为指导责任事故和操作责任事故。',memory:'【口诀】"事故报告内容：时间地点经过伤亡措施"——报告内容。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'事故按原因分类，施工质量事故可分为()。',options:['技术原因', '管理原因', '操作原因', '社会原因', '经济原因'],answer:[0, 1, 3, 4],analysis:'事故按原因分类，施工质量事故可分为技术、管理、社会和经济原因。',memory:'【口诀】"事故处理程序：报告调查分析处理"——处理程序。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'下列事故后果属于较大施工质量事故有()。',options:['造成2人死亡', '造成5人死亡', '造成51人重伤', '造成16人重伤（Kimmy真帅）', '造成1200万直接经济损失'],answer:[1, 3, 4],analysis:'本题考核事故等级划分，A选项：一般事故；C选项：重大事故。\n施工质量事故分为以下4个等级：\n(1)特别重大事故，是指造成30人及以上死亡，或者100人及以上重伤，或者1亿元及以上直接经济损失的事故。\n(2)重大事故，是指造成10人及以上30人以下死亡，或者50人及以上100人以下重伤，或者5000万元及以上1亿元以下直接经济损失的事故。\n(3)较大事故，是指造成人及以上10人以下死亡，或者10人及以上50人以下重伤，或者1000万元及以上5000万元以下直接经济损失的事故。\n(4)一般事故，是指造成3人以下死亡，或者10人以下重伤，或者100万元及以1000万元以下直接经济损失的事故。',memory:'【口诀】"质量改进：纠正措施预防措施持续改进"——改进方法。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'下列属于施工质量事故预防措施的有()。',options:['坚持按工程建设程序办事', '做好必要的技术复核、技术核定工作', '严格把好建筑材料及制品的质量关', '加强培训教育，提高一线工人质量意识', '做好应对不利施工条件和各种灾害的预案'],answer:[0, 1, 2, 4],analysis:'D选项应为加强质量培训教育，提高全员质量意识。\n施工质量事故预防措施：\n(1)坚持按工程建设程序办事。\n(2)做好必要的技术复核、技术核定工作。\n(3)严格把好建筑材料及制品的质量关。\n(4)加强质量培训教育，提高全员质量意识。\n(5)加强施工过程组织管理。\n(6)做好应对不利施工条件和各种灾害的预案。\n(7)加强施工安全与环境管理。',memory:'【口诀】"质量成本：预防成本鉴定成本故障成本"——质量成本。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'施工质量事故的形成原因众多，施工与管理失控是造成大量质量事故的常见原因，下列选项中属于此范围的有()。',options:['用光圆钢筋代替异型钢筋', '图纸未经会审即仓促施工', '浇筑混凝土时振捣不良，造成薄弱部位', '水泥安定性不良，造成混凝土爆裂', '沉降缝或变形缝设置不当'],answer:[0, 1, 2],analysis:'施工与管理失控是造成大量质量事故的常见原因，主要表现在以下几方面：\n(1)未经设计单位同意，擅自修改设计；或不按图施工。例如，将铰接做成刚接将简支梁做成连续梁；用光圆钢筋代替异型钢筋等，导致结构破坏。挡土墙不按图设滤水层、排水孔，导致压力增大，墙体破坏或倾覆。\n(2)图纸未经会审即仓促施工；或不熟悉图纸，盲目施工。\n(3)不按有关施工规范和操作规程施工。例如，浇筑混凝土时振捣不良，造成薄弱部位：砖砌体包心砌筑，上下通缝，灰浆不均匀饱满等，均能导致砖墙或砖柱破坏。\n(4)不懂装懂，蛮干施工，例如，将钢筋混凝土预制梁倒置吊装；将悬挑结构钢筋放在受压区等，均会导致结构破坏，造成严重后果。\n(5)管理混乱，施工方案考虑不周，施工顺序错误，技术交底不清，违章作业，疏于检查、验收等，均可能导致质量事故。\nD属于材料构配件不合格，E属于设计计算失误。',memory:'【口诀】"质量信息管理：收集处理存储传递应用"——信息管理。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'施工质量事故的成因分析中，下列属于违背工程建设基本规律的是()。',options:['无证设计、无证施工', '未搞清工程地质、水文情况等条件就仓促开工', '不懂装懂，蛮干施工', '未经设计单位同意，擅自修改设计', '地基处理失误'],answer:[0, 1],analysis:'不懂装懂，蛮干施工、未经设计单位同意，擅自修改设计属于施工与管理失控；地基处理失误属于工程地质勘察失误或地基处理失误。',memory:'【口诀】"质量责任：建设单位勘察设计施工监理"——各方责任。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'技术核定由施工单位所出具，涉及合理施工措施包括()等技术事宜。',options:['资源', '方案', '工艺', '措施', '方法'],answer:[1, 2, 3, 4],analysis:'技术核定是指为顺利完成工程施工，由施工单位所出具，涉及合理施工措施(方案、方法、工艺、措施)等技术事宜，并经建设单位和有关单位共同核定的凭证。',memory:'【口诀】"建设单位责任：提供条件组织验收"——建设单位责任。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'事故处理要达到的目的是()。',options:['安全可靠', '经济合理', '满足生产要求', '施工方便', '尽快处理'],answer:[0, 1, 3],analysis:'事故处理要达到安全可靠、不留隐患、满足生产和使用要求、施工方便、经济合理的目的。',memory:'【口诀】"勘察设计责任：勘察真实设计合规"——勘察设计责任。',section:'5.4  施工质量事故预防与调查处理'},
+  {type:'multi',question:'质量事故中，对事故相关责任单位可实施的行政处罚有()。',options:['罚款', '停业整顿', '降低资质等级', '停止执业', '终身不予注册'],answer:[0, 1, 2],analysis:'对事故相关责任者实施行政处罚，对事故负有责任的建设、勘察、设计、施工、监理等单位和施工图审查、质量检测等有关单位分别给予罚款、停业整顿、降低资质等级、吊销资质证书其中一项或多项处罚，对事故负有责任的注册执业人员分别给予罚款、停止执业、吊销执业资格证书、终身不予注册其中一项或多项处罚。\n第6章  建设工程成本管理',memory:'【口诀】"施工单位责任：按图施工质量保证"——施工单位责任。',section:'5.4  施工质量事故预防与调查处理'}
+];
+
+const PASSWORD = '6666';
+let currentIndex = 0, score = 0, revealed = false;
+let userAnswers = new Array(questions.length).fill(null);
+let feedbackList = [];
+const optLabels = 'ABCDEFGHIJ'.split('');
+
+let pwPassed = false;
+function checkPassword() {
+  const i = document.getElementById('pwInput'), e = document.getElementById('pwError');
+  if (i.value===PASSWORD) {
+    pwPassed = true;
+    document.getElementById('passwordOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+    init();
+  }
+  else { e.textContent='密码错误，请重新输入'; i.style.animation='shake 0.4s'; setTimeout(()=>i.style.animation='',400); }
+}
+function initPassword() {
+  document.body.style.overflow = 'hidden';
+  document.getElementById('pwInput').focus();
+  document.getElementById('pwInput').addEventListener('keydown', function(ev) { if (ev.key==='Enter') checkPassword(); });
+  document.getElementById('pwBtn').addEventListener('click', function() { checkPassword(); });
+}
+
+function init() {
+  const js=document.getElementById('jumpSelect');
+  questions.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 题`;js.appendChild(o);});
+  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();});
+  document.getElementById('totalNum').textContent=questions.length;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q=questions[currentIndex];
+  document.getElementById('questionCard').style.display='';
+  document.getElementById('finishCard').classList.remove('show');
+  document.getElementById('sectionTag').textContent=q.section||'';
+  document.getElementById('qBadge').textContent=q.type==='single'?'单选题':'多选题';
+  document.getElementById('qBadge').className='q-badge '+(q.type==='single'?'single':'multi');
+  document.getElementById('qNumber').textContent=`第 ${currentIndex+1} 题（共 ${questions.length} 题）`;
+  document.getElementById('qText').textContent=q.question;
+  document.getElementById('qScoreText').textContent=q.type==='single'?'1分':'2分';
+  document.getElementById('currentNum').textContent=currentIndex+1;
+  document.getElementById('progressBar').style.width=((currentIndex+1)/questions.length*100)+'%';
+  document.getElementById('jumpSelect').value=currentIndex;
+  const c=document.getElementById('optionsContainer');c.innerHTML='';
+  q.options.forEach((opt,i)=>{const d=document.createElement('div');d.className='option';d.innerHTML=`<div class="opt-label">${optLabels[i]}</div><div class="opt-text">${opt}</div><div class="opt-icon"></div>`;d.addEventListener('click',()=>toggleOption(i,d));c.appendChild(d);});
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='none';
+  if(userAnswers[currentIndex]!==null){revealed=true;showResult(false);}else{revealed=false;document.getElementById('confirmBtn').disabled=false;}
+}
+
+function toggleOption(index,div) {
+  if(revealed)return;const q=questions[currentIndex];
+  if(q.type==='single'){document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));div.classList.add('selected');userAnswers[currentIndex]=[index];}
+  else{div.classList.toggle('selected');const s=[];document.querySelectorAll('.option').forEach((el,i)=>{if(el.classList.contains('selected'))s.push(i);});userAnswers[currentIndex]=s.length>0?s:null;}
+  document.getElementById('confirmBtn').disabled=!userAnswers[currentIndex]||userAnswers[currentIndex].length===0;
+}
+
+function confirmAnswer() {
+  if(revealed){const a=userAnswers.every(a=>a!==null);if(a)showFinish();else nextQuestion();return;}
+  if(!userAnswers[currentIndex])return;revealed=true;showResult(true);
+}
+
+function showResult(isConfirm) {
+  const q=questions[currentIndex],ua=userAnswers[currentIndex].slice().sort(),ca=q.answer.slice().sort();
+  const ok=ua.length===ca.length&&ua.every((v,i)=>v===ca[i]);
+  if(isConfirm){if(ok)score+=q.type==='single'?1:2;else if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0){score+=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}}document.getElementById('scoreDisplay').textContent=score;}
+  document.querySelectorAll('.option').forEach((el,i)=>{el.classList.add('disabled');if(ca.includes(i)){if(ua.includes(i))el.classList.add('correct');else el.classList.add('reveal-correct');el.querySelector('.opt-icon').textContent='✓';}else if(ua.includes(i)){el.classList.add('wrong');el.querySelector('.opt-icon').textContent='✗';}});
+  if(ok){const p=q.type==='single'?1:2;document.getElementById('expAnswer').innerHTML=`<span style="color:#38a169">✓ 回答正确！+${p}分</span>`;}
+  else{let ps=0;if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0)ps=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}document.getElementById('expAnswer').innerHTML=`<span style="color:#e53e3e">✗ 回答错误${ps>0?'（部分正确 +'+ps+'分）':''}。正确答案：${ca.map(a=>optLabels[a]).join('')}</span>`;}
+  document.getElementById('expAnalysis').innerHTML=`<div class="ea-title">📝 解析</div>${q.analysis}`;
+  if(q.memory){document.getElementById('expMemory').innerHTML=`<div class="em-title">💡 记忆技巧</div>${q.memory}`;document.getElementById('expMemory').style.display='block';}else{document.getElementById('expMemory').style.display='none';}
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('confirmBtn').textContent='下一题 ▶';document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='';
+  if(isConfirm){const a=userAnswers.every(a=>a!==null);if(a)document.getElementById('confirmBtn').textContent='查看结果 🎉';}
+}
+
+function nextQuestion() { if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} }
+
+function showFinish() {
+  document.getElementById('questionCard').style.display='none';
+  document.getElementById('finishCard').classList.add('show');
+  const t=questions.reduce((s,q)=>s+(q.type==='single'?1:2),0),w=[];
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();if(!(u.length===c.length&&u.every((v,j)=>v===c[j])))w.push(i+1);});
+  document.getElementById('finalScore').textContent=`${score} / ${t}`;
+  document.getElementById('finalDetail').textContent=`共${questions.length}题，答对${questions.length-w.length}题，答错${w.length}题`;
+  document.getElementById('reviewBtn').style.display=w.length>0?'':'none';
+}
+
+function resetQuiz() { currentIndex=0;score=0;revealed=false;userAnswers=new Array(questions.length).fill(null);feedbackList=[];document.getElementById('scoreDisplay').textContent='0';renderQuestion(); }
+
+function openReview() {
+  const l=document.getElementById('reviewList');l.innerHTML='';let h=false;
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();
+  if(!(u.length===c.length&&u.every((v,j)=>v===c[j]))){h=true;const d=document.createElement('div');d.className='review-item';d.innerHTML=`<div class="ri-q">${i+1}. ${q.question}</div><div class="ri-row ri-user">你的答案：${u.map(a=>optLabels[a]).join('')}</div><div class="ri-row ri-correct">正确答案：${c.map(a=>optLabels[a]).join('')}</div><div class="ri-kp">📝 ${q.analysis}</div>`;d.style.cursor='pointer';d.addEventListener('click',()=>{closeReview();currentIndex=i;renderQuestion();});l.appendChild(d);}});
+  if(!h)l.innerHTML='<div class="review-empty">🎉 全部正确，没有错题！</div>';
+  document.getElementById('reviewModal').classList.add('show');
+}
+function closeReview(){document.getElementById('reviewModal').classList.remove('show');}
+function openFeedback(){document.getElementById('feedbackText').value='';document.getElementById('feedbackModal').classList.add('show');}
+function closeFeedback(){document.getElementById('feedbackModal').classList.remove('show');}
+function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});closeFeedback();}
+function openFeedbackSummary(){const l=document.getElementById('feedbackSummaryList');l.innerHTML='';feedbackList.forEach(fb=>{const d=document.createElement('div');d.className='fb-item';d.innerHTML=`<div class="fb-q">第${fb.qIndex+1}题：${fb.question}</div><div class="fb-content">${fb.content}</div>`;l.appendChild(d);});document.getElementById('feedbackSummaryModal').classList.add('show');}
+function closeFeedbackSummary(){document.getElementById('feedbackSummaryModal').classList.remove('show');}
+
+initPassword();
+
+</script>
+</body>
+</html>

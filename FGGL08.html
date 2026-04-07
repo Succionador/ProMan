@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>范工管理 - 第1章 建设工程项目组织、规划与控制</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #2d3748; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.top-bar { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+.top-bar h1 { font-size: 18px; color: #4a5568; margin-bottom: 2px; font-weight: 600; }
+.top-bar .section-tag { font-size: 13px; color: #805ad5; font-weight: 500; margin-bottom: 14px; padding: 3px 10px; background: rgba(128,90,213,0.08); border-radius: 6px; display: inline-block; }
+.stats-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.progress-info { flex: 1; min-width: 200px; }
+.progress-text { font-size: 14px; color: #718096; margin-bottom: 6px; }
+.progress-text span { font-weight: 700; color: #5a67d8; }
+.progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+.score-box { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; padding: 8px 18px; border-radius: 10px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.score-box .label { font-weight: 400; font-size: 13px; opacity: 0.9; }
+.jump-select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #4a5568; background: #f7fafc; cursor: pointer; outline: none; transition: border-color 0.2s; }
+.jump-select:focus { border-color: #667eea; }
+.question-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+.q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.q-badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: white; }
+.q-badge.single { background: linear-gradient(135deg, #48bb78, #38a169); }
+.q-badge.multi { background: linear-gradient(135deg, #4299e1, #3182ce); }
+.q-score { font-size: 12px; color: #a0aec0; }
+.q-number { font-size: 15px; font-weight: 700; color: #4a5568; margin-bottom: 14px; }
+.q-text { font-size: 16px; line-height: 1.75; color: #2d3748; margin-bottom: 20px; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+.option:hover { border-color: #a3bffa; background: #f7faff; }
+.option.selected { border-color: #5a67d8; background: #ebf4ff; }
+.option.correct { border-color: #48bb78; background: #f0fff4; }
+.option.wrong { border-color: #fc8181; background: #fff5f5; }
+.option.reveal-correct { border-color: #48bb78; background: #f0fff4; }
+.option.disabled { pointer-events: none; }
+.opt-label { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #cbd5e0; color: #718096; transition: all 0.2s; }
+.option.selected .opt-label { background: #5a67d8; color: white; border-color: #5a67d8; }
+.option.correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.option.wrong .opt-label { background: #fc8181; color: white; border-color: #fc8181; }
+.option.reveal-correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.opt-text { font-size: 15px; line-height: 1.6; padding-top: 2px; color: #4a5568; }
+.opt-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 14px; color: white; margin-left: auto; }
+.option.correct .opt-icon { display: flex; background: #48bb78; }
+.option.wrong .opt-icon { display: flex; background: #fc8181; }
+.explanation { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: #f7fafc; border-left: 4px solid #5a67d8; display: none; animation: fadeIn 0.3s ease; }
+.explanation.show { display: block; }
+.explanation .exp-title { font-size: 14px; font-weight: 700; color: #5a67d8; margin-bottom: 8px; }
+.explanation .exp-answer { font-size: 15px; color: #2d3748; margin-bottom: 6px; }
+.explanation .exp-answer span { font-weight: 700; }
+.explanation .exp-analysis { font-size: 14px; color: #2c5282; margin-top: 10px; line-height: 1.7; padding: 10px 14px; background: #ebf8ff; border-radius: 8px; border-left: 3px solid #4299e1; }
+.explanation .exp-analysis .ea-title { font-weight: 700; color: #2b6cb0; }
+.explanation .exp-memory { font-size: 14px; color: #744210; margin-top: 12px; line-height: 1.7; padding: 10px 14px; background: #fffff0; border-radius: 8px; border-left: 3px solid #d69e2e; }
+.explanation .exp-memory .em-title { font-weight: 700; color: #975a16; }
+.btn-area { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+.btn { padding: 12px 32px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: #fff; color: #e53e3e; border: 2px solid #fed7d7; }
+.btn-secondary:hover { background: #fff5f5; border-color: #fc8181; }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.finish-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 48px 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; display: none; }
+.finish-card.show { display: block; }
+.finish-card .trophy { font-size: 64px; margin-bottom: 16px; }
+.finish-card h2 { font-size: 24px; color: #2d3748; margin-bottom: 8px; }
+.finish-card .final-score { font-size: 48px; font-weight: 800; color: #5a67d8; margin: 16px 0; }
+.finish-card .final-detail { font-size: 14px; color: #718096; margin-bottom: 24px; line-height: 1.8; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; }
+.modal h3 { font-size: 18px; color: #2d3748; margin-bottom: 16px; }
+.modal textarea { width: 100%; height: 120px; border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
+.modal textarea:focus { border-color: #667eea; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.modal-btns .btn { padding: 10px 24px; font-size: 14px; }
+.review-modal { background: white; border-radius: 16px; padding: 0; width: 92%; max-width: 600px; max-height: 80vh; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; display: flex; flex-direction: column; overflow: hidden; }
+.review-modal .review-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.review-modal .review-header h3 { margin-bottom: 0; font-size: 18px; color: #e53e3e; }
+.review-modal .review-close { width: 32px; height: 32px; border: none; background: #f7fafc; border-radius: 50%; font-size: 18px; cursor: pointer; color: #718096; display: flex; align-items: center; justify-content: center; }
+.review-modal .review-close:hover { background: #edf2f7; }
+.review-modal .review-list { padding: 16px 24px 24px; overflow-y: auto; flex: 1; }
+.review-item { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.review-item:last-child { margin-bottom: 0; }
+.review-item .ri-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.review-item .ri-row { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+.review-item .ri-user { color: #e53e3e; }
+.review-item .ri-correct { color: #38a169; }
+.review-empty { text-align: center; padding: 40px 20px; color: #38a169; font-size: 18px; }
+.fb-item { background: #fffff0; border: 1px solid #fefcbf; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.fb-item:last-child { margin-bottom: 0; }
+.fb-item .fb-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.fb-item .fb-content { font-size: 13px; color: #c05621; background: rgba(237, 137, 54, 0.08); padding: 10px 14px; border-radius: 8px; line-height: 1.6; }
+.password-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 999; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+.password-overlay.hidden { opacity: 0; pointer-events: none; }
+.password-card { background: white; border-radius: 20px; padding: 40px 36px; width: 90%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+.password-card .lock-icon { font-size: 48px; margin-bottom: 16px; }
+.password-card h2 { font-size: 20px; color: #2d3748; margin-bottom: 6px; }
+.password-card p { font-size: 14px; color: #a0aec0; margin-bottom: 24px; }
+.password-card input { width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; text-align: center; letter-spacing: 4px; outline: none; transition: border-color 0.2s; }
+.password-card input:focus { border-color: #667eea; }
+.password-card .pw-error { color: #e53e3e; font-size: 13px; margin-top: 10px; min-height: 20px; }
+.password-card .pw-btn { margin-top: 16px; width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.password-card .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(102,126,234,0.4); }
+.password-card .pw-btn:active { transform: translateY(0); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+</style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<body>
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-card">
+    <div class="lock-icon">🔒</div>
+    <h2>请输入访问密码</h2>
+    <p>本页面仅限授权用户使用</p>
+    <input type="password" id="pwInput" placeholder="请输入密码" autocomplete="off">
+    <div class="pw-error" id="pwError"></div>
+    <button class="pw-btn" id="pwBtn">进 入</button>
+  </div>
+</div>
+<div class="container">
+  <div class="top-bar">
+    <h1>📚 第1章 建设工程项目组织、规划与控制</h1>
+    <div class="section-tag" id="sectionTag"></div>
+    <div class="stats-row">
+      <div class="progress-info">
+        <div class="progress-text">做题进度：<span id="currentNum">1</span> / <span id="totalNum">125</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+      </div>
+      <div class="score-box"><span class="label">得分</span><span id="scoreDisplay">0</span></div>
+      <select class="jump-select" id="jumpSelect" title="跳转到指定题目"></select>
+    </div>
+  </div>
+  <div class="question-card" id="questionCard">
+    <div class="q-header">
+      <span class="q-badge" id="qBadge">单选题</span>
+      <span class="q-score" id="qScoreText"></span>
+    </div>
+    <div class="q-number" id="qNumber"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="explanation" id="explanation">
+      <div class="exp-title">📝 解析</div>
+      <div class="exp-answer" id="expAnswer"></div>
+      <div class="exp-analysis" id="expAnalysis"></div>
+      <div class="exp-memory" id="expMemory"></div>
+    </div>
+    <div class="btn-area">
+      <button class="btn btn-secondary" id="feedbackBtn" style="display:none" onclick="openFeedback()">⚠️ 题目/答案反馈</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="confirmAnswer()">确定</button>
+    </div>
+  </div>
+  <div class="finish-card" id="finishCard">
+    <div class="trophy">🎉</div>
+    <h2>练习完成！</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-detail" id="finalDetail"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="reviewBtn" onclick="openReview()" style="margin:0">❌ 查看错题</button>
+      <button class="btn btn-secondary" id="feedbackSummaryBtn" onclick="openFeedbackSummary()" style="margin:0;display:none">⚠️ 反馈汇总</button>
+      <button class="btn btn-primary" onclick="resetQuiz()" style="margin:0">🔄 重新做题</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal">
+    <h3>⚠️ 题目/答案反馈</h3>
+    <p style="font-size:14px;color:#718096;margin-bottom:12px;">请描述您认为有误的题目或答案，我们会尽快核实修正。</p>
+    <textarea id="feedbackText" placeholder="请输入您发现的问题..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeFeedback()">取消</button>
+      <button class="btn btn-primary" onclick="submitFeedback()">提交</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="reviewModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>❌ 错题汇总</h3>
+      <button class="review-close" onclick="closeReview()">✕</button>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackSummaryModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>⚠️ 反馈汇总</h3>
+      <button class="review-close" onclick="closeFeedbackSummary()">✕</button>
+    </div>
+    <div class="review-list" id="feedbackSummaryList"></div>
+  </div>
+</div>
+<script>
+const questions = [
+  {type:'single',question:'建设单位应在工程(    )组织编制项目绿色策划方案。',options:['立项阶段', '方案设计阶段', '决策阶段', '施工阶段'],answer:[0],analysis:'建设单位应在工程立项阶段组织编制项目绿色策划方案。',memory:'【口诀】"绿色建造：四节一环保"——绿色建造核心。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'绿色设计宜应用(    )等数字化设计方式，实现设计协同、设计优化。',options:['EPC', '3R', 'BIM', 'GIS'],answer:[2],analysis:'绿色设计宜应用BIM等数字化设计方式，实现设计协同、设计优化。',memory:'【口诀】"绿色建筑：节能节地节水节材环保"——绿色建筑。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'项目交付前应进行绿色建造的(    )。',options:['节水、节电、节能评估（Kimmy真帅）', '效果评估', '节能评估', '成果评估'],answer:[1],analysis:'项目交付前应进行绿色建造的效果评估。',memory:'【口诀】"绿色施工：施工过程绿色化"——绿色施工定义。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'临时设施占地面积有效利用率大于(    )。',options:['60%', '70%', '80%', '90%'],answer:[3],analysis:'临时设施占地面积有效利用率大于90%',memory:'【口诀】"四节目标：节能节地节水节材"——四节内容。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'加强建筑垃圾的回收再利用，力争使建筑物拆除产生的废弃物再利用和回收率大于(    )。',options:['30%', '40%', '50%', '60%'],answer:[1],analysis:'加强建筑垃圾的回收再利用，力争使建筑垃圾的再利用和回收率达到30%，建筑物拆除产生的废弃物再利用和回收率大于40%。对于碎石类、土石方类建筑垃圾，可采用地基填埋、铺路等方式提高再利用率，力争再利用率大于50%。',memory:'【口诀】"节能：能源消耗降低"——节能目标。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'施工单位应建立以(    )为第一责任人的绿色施工管理体系，制定绿色施工管理制度，负责绿色施工的组织实施，进行绿色施工教育培训，定期开展自检、联检和评价工作。',options:['项目经理', '项目技术负责人', '单位负责人', '单位技术负责人'],answer:[0],analysis:'施工单位应建立以项目经理为第一责任人的绿色施工管理体系，制定绿色施工管理制度，负责绿色施工的组织实施，进行绿色施工教育培训，定期开展自检、联检和评价工作。',memory:'【口诀】"节地：用地节约高效"——节地目标。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'在编制(    )和招标文件时，应明确绿色施工的要求，并提供包括场地、环境、工期、资金等方面的条件保障。',options:['工程预算', '工程估算', '工程概算', '工程结算'],answer:[2],analysis:'在编制工程概算和招标文件时，应明确绿色施工的要求，并提供包括场地、环境、工期、资金等方面的条件保障。',memory:'【口诀】"节水：水资源高效利用"——节水目标。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'实行总承包管理的建设工程，(    )应对绿色施工负总责。',options:['劳务单位', '专业承包单位', '分包单位', '总承包单位'],answer:[3],analysis:'实行总承包管理的建设工程，总承包单位应对绿色施工负总责。',memory:'【口诀】"节材：材料节约循环"——节材目标。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'现场办公和生活用房采用周转式活动房现场围挡应最大限度地利用已有围墙，或采用装配式可重复使用围挡封闭力争工地临房临时围挡材料的可重复使用率达到(    )。',options:['70%', '80%', '60%', '90%'],answer:[0],analysis:'现场办公和生活用房采用周转式活动房现场围挡应最大限度地利用已有围墙，或采用装配式可重复使用围挡封闭力争工地临房临时围挡材料的可重复使用率达到70%。',memory:'【口诀】"环境保护：减少污染保护生态"——环保目标。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'处于基坑降水阶段的工地，宜优先采用地下水作为混凝土搅拌用水、养护用水、冲洗用水和部分生活用水现场机具、设备、车辆冲洗喷洒路面绿化浇灌等用水，优先采用非传统水掘，尽量不使用市政自来水力争施工中非传统水源和循环水的再利用量大于(    )。',options:['20%', '30%', '40%', '50%'],answer:[1],analysis:'处于基坑降水阶段的工地，宜优先采用地下水作为混凝土搅拌用水、养护用水、冲洗用水和部分生活用水现场机具、设备、车辆冲洗喷洒路面绿化浇灌等用水，优先采用非传统水掘，尽量不使用市政自来水力争施工中非传统水源和循环水的再利用量大于30%。',memory:'【口诀】"绿色施工评价：优良合格不合格"——评价等级。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'照明照度宜按最低合理照度设计照明设计以满足最低照度为原则，照度不应超过最低照度的(    )施工现场宜错峰用电',options:['50%', '40%', '30%', '20%'],answer:[3],analysis:'照明照度宜按最低合理照度设计照明设计以满足最低照度为原则，照度不应超过最低照度的20%施工现场宜错峰用电。',memory:'【口诀】"评价阶段：地基结构装修机电"——评价阶段。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'为保护环境，在土方作业阶段，施工现场作业区目测扬尘高度应小于（ ）m。',options:['2.0', '2.5', '1.5', '3.0'],answer:[2],analysis:'土方作业阶段，采取洒水、覆盖等措施，达到作业区目测扬尘高度小于 1.5m，不扩散到场区外。',memory:'【口诀】"评价指标：控制项一般项优选项"——评价指标。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'作为绿色策划的主要内容，绿色交付策划应明确的内容是（ ）。',options:['绿色建造效果评估内容及方式', '绿色建造目标及实施路径', '绿色建造全过程数字化技术应用方式', '绿色建造各参与方协同工作机制'],answer:[0],analysis:'绿色交付策划：\n（1）应根据建筑类型和运营维护需求确定绿色建造项目的实体交付内容及交付标准。\n（2）宜按照城市信息化建设要求和运营维护需求，制定数字化交付标准和方案，明确各阶段责任主体和交付成果。\n（3）应明确综合效能调适及绿色建造效果评估的内容及方式。',memory:'【口诀】"绿色建造原则：因地制宜资源节约环境友好"——建造原则。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'可持续发展的基本原则有(    )。',options:['共同性', '持续性', '延续性', '公正性', '公平性'],answer:[0, 1, 4],analysis:'可持续发展有公平性、持续性和共同性三项基本原则。',memory:'【口诀】"绿色施工原则：因地制宜节约资源保护环境"——施工原则。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'清洁生产的主要内容可归纳为(    )。',options:['清洁的人员控制', '清洁的生产过程', '贯穿于清洁生产的全过程控制', '清洁的产品', '清洁的原料与能源'],answer:[1, 2, 3, 4],analysis:'清洁生产的主要内容可归纳为“三清一控”。①清洁的原料与能源；②清洁的生产过程；③清洁的产品；④贯穿于清洁生产的全过程控制。',memory:'【口诀】"绿色施工要点：规划管理实施评价"——施工要点。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'循环经济的“3R”原则是(    )。',options:['再清洁', '再利用', '减量化', '再循环', '可持续性'],answer:[1, 2, 3],analysis:'循环经济的“3R”原则，即“减量化”(Reduce)、“再利用”(Reuse)、“再循环”(Recycle)，是绿色施工需遵循的重要原则。',memory:'【口诀】"节能措施：设备效率能源回收可再生能源"——节能措施。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'LCA方法应用可分(    )阶段。',options:['人材机分析', '清单分析', '效果评估', '影响评估', '目的与范围确定'],answer:[1, 3, 4],analysis:'LCA方法应用可分为以下四个阶段：(1)目的与范围确定；(2)清单分析；(3)影响评估；(4)解释说明。',memory:'【口诀】"节地措施：平面布置立体利用保护用地"——节地措施。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'以下属于建设单位绿色施工职责的是(    )。',options:['应建立建设工程绿色施工的协调机制', '应进行绿色设计', '在编制工程概算和招标文件时，应明确绿色施工的要求', '制定绿色施工管理制度', '应审查绿色施工专项方案'],answer:[0, 2],analysis:'B选项是设计单位绿色施工职责；D选项是施工单位绿色施工职责；E选项是工程监理单位绿色施工职责。',memory:'【口诀】"节水措施：用水定额循环用水雨水利用"——节水措施。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'绿色施工管理措施包括(    )。',options:['周转材料利用', '节材与材料资源利用', '绿色施工组织设计', '设备材料管理', '排放和减量化管理'],answer:[2, 3, 4],analysis:'绿色施工管理措施包括：1)绿色施工组织设计和绿色施工方案；2)人员安全与健康管理；3)设备材料管理；4)用能用水管理；5)排放和减量化管理；6)环境监测管理。',memory:'【口诀】"节材措施：材料损耗再生材料本地化"——节材措施。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'绿色施工方案应包括(    )内容。',options:['节能措施', '节电措施', '节材措施', '节气措施', '节水措施'],answer:[0, 2, 4],analysis:'绿色施工方案应包括以下内容：①节材措施。②节水措施。③节能措施。④节地与施工用地保护措施。⑤环境保护措施。',memory:'【口诀】"环保措施：扬尘噪声污水垃圾光污染"——环保措施。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'绿色施工技术措施包括(    )。',options:['发展绿色施工“四新”技术', '人员安全与健康管理', '节材与材料资源利用', '用能用水管理', '节能与能源利用'],answer:[0, 2, 4],analysis:'BD选项属于绿色施工管理措施。',memory:'【口诀】"扬尘控制：围挡覆盖洒水冲洗"——扬尘控制。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'绿色施工组织设计、绿色施工方案或绿色施工专项方案的编制应符合下列规定：(    )。',options:['应考虑施工现场的自然与人文环境特点', '应有减少资源浪费和环境污染的措施', '应明确绿色施工的组织管理体系、技术要求和措施', '应选用非先进的产品、技术、设备、施工工艺和方法，利用规划区域内设施', '应包含改善作业条件、提高劳动强度、节约人力资源等内容'],answer:[0, 1, 2],analysis:'绿色施工组织设计、绿色施工方案或绿色施工专项方案的编制应符合下列规定：(1)应考虑施工现场的自然与人文环境特点(2)应有减少资源浪费和环境污染的措施(3)应明确绿色施工的组织管理体系、技术要求和措施(4)应选用先进的产品、技术、设备、施工工艺和方法，利用规划区域内设施。(5)应包含改善作业条件、降低劳动强度、节约人力资源等内容。',memory:'【口诀】"噪声控制：低噪设备隔音降噪时限"——噪声控制。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'下列选项中属于节材措施的是(    )。',options:['施工现场500km以内生产的建筑材料用量占建筑材料总重量的80%以上', '采取措施提高模板、脚手架等的周转次数', '减少二次搬运', '应根据施工进度、库存情况等合理安排材料的采购、进场时间和批次，减少库存', '采用工具式模板和新型模板材料'],answer:[1, 2, 3, 4],analysis:'节材措施鼓励就地取材，施工现场500km以内生产的建筑材料用量占建筑材料总重量的70%以上，宜优先选用获得绿色建材评价认证标识的建筑材料和产品。应根据施工进度、库存情况等合理安排材料的采购、进场时间和批次，减少库存材料运输工具适宜，装卸方法得当，防止损坏和遗洒根据现场平面布置情况就近卸载，避免和减少二次搬运采取措施提高模板、脚手架等的周转次数，如采用管件合一的脚手架和支撑体系，采用工具式模板和新型模板材料，如铝合金、塑料、玻璃钢和其他可再生材质的大模板和钢框镶边模板等。',memory:'【口诀】"污水控制：沉淀处理达标排放"——污水控制。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'绿色建造需要将绿色发展理念融入工程策划、设计、施工、交付全过程，除体现绿色化外，还应体现的特征有（ ）。',options:['信息化', '工业化', '系统化', '产业化', '集约化'],answer:[0, 1, 3, 4],analysis:'绿色建造需要将绿色发展理念融入工程策划、设计、施工、交付的建造全过程，充分体现绿色化、工业化、信息化、集约化和产业化的总体特征。',memory:'【口诀】"垃圾控制：分类收集减量资源化"——垃圾控制。',section:'8.1  绿色建造管理'},
+  {type:'multi',question:'有观点认为，应在“3R”原则基础上增加(    )，扩展为“5R”原则',options:['再优化', '再生', '再制造', '再设计', '再回收'],answer:[1, 2],analysis:'也有观点认为，应在前述“3R”原则基础上增加“再制造”和“再生”，扩展为“5R”原则。',memory:'【口诀】"光污染控制：遮挡限时定向"——光污染控制。',section:'8.1  绿色建造管理'},
+  {type:'single',question:'下列文明施工管理理念中，强调企业在创造利润的同时，还要承担对环境、社会和其他利益相关者的责任或义务的是（ ）。',options:['精益管理理念', '企业社会责任理念', '“8S” 管理理念', '经济责任理念'],answer:[1],analysis:'企业社会责任是指企业在创造利润、对股东承担责任的同时，还要承担对股东以外的企业利益相关者的责任。',memory:'【口诀】"土壤保护：防渗覆盖恢复植被"——土壤保护。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'文明施工应贯彻的 “8S” 管理理念，是在整理、整顿、清扫、清洁、素养、安全 6S 管理要素的基础上，又增加了（ ）两大要素。',options:['监督和学习', '节约和学习', '监督和供应', '节约和供应'],answer:[1],analysis:'又增加了节约（Save）和学习（Study）两大要素，即成为当今施工现场的 “8S” 管理理念。',memory:'【口诀】"建筑垃圾：分类回收利用率30%"——垃圾利用。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'工地四周设置的封闭围挡高度不得低于（ ）m。',options:['1.8', '2.0', '2.2', '2.5'],answer:[0],analysis:'现场围挡采用封闭围挡，高度不小于 1.8m；围挡材料可采用彩色、定型钢板，砖、混凝土砌块等墙体。',memory:'【口诀】"夜间施工：许可证公告限噪"——夜间施工。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'施工单位应建立绿色施工管理体系，并明确（ ）是项目绿色施工管理的第一责任人。',options:['施工单位负责人', '施工单位技术负责人', '项目负责人', '项目技术负责人'],answer:[2],analysis:'施工单位通过建立绿色施工管理体系，明确企业各部门绿色施工管理职责，并明确施工项目经理是其所负责项目绿色施工管理的第一责任人，负责绿色施工的组织实施和目标实现。',memory:'【口诀】"场界噪声：昼间70夜间55"——噪声限值。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'安全文明施工费的结算依据是（ ）。',options:['安全文明施工费台账', '施工合同及实施过程中的费用核查情况', '安全文明施工费报价单', '有关企业安全生产费用提取制度（Kimmy真帅）'],answer:[1],analysis:'施工单位应设立安全文明施工费专用账户，建立安全文明施工措施费台账，做到专款专用，确保按投标报价及相关标准要求投入，施工合同和实施过程中的费用核查情况是安全文明措施费的结算依据。',memory:'【口诀】"污水排放：三级沉淀达标"——污水排放。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'下列工作要求中，属于文明施工管理 “六化” 的是（ ）。',options:['项目管理制度化', '设备操作规范化', '安全设施标准化', '机器设备现场摆放定置化'],answer:[2],analysis:'建筑企业及施工项目部应努力做到文明施工管理的 “六化”：现场管理制度化、安全设施标准化、现场布置条理化、机料摆放定置化、作业行为规范化、环境协调和谐化。',memory:'【口诀】"食堂污水：隔油处理"——食堂污水。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'下列文明施工标准中，不属于文明施工管理体系的是（ ）。',options:['管理类标准', '技术类标准', '设施类标准', '行为类标准'],answer:[2],analysis:'建立文明施工管理体系是落实项目管理目标和管理职责的基础。文明施工管理体系通常包括目标设置、组织机构、权责划分、管理流程、措施要求、规章制度、奖惩制度等，涉及技术类标准、管理类标准和行为类标准。管理体系的建立要考虑施工现场实际情况，确保文明施工管理体系能够真正应用到施工现场管理中，促进文明施工管理措施的顺利实施，并能根据情况变化适时进行调整。',memory:'【口诀】"厕所污水：化粪池处理"——厕所污水。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'下列绿色施工相关内容中，不属于安全文明施工管理规划的是（ ）。',options:['工程概况', '环境保护措施', '应急预案', '材料和设备的采购计划'],answer:[3],analysis:'制定安全文明施工管理规划，优化对策方法。安全文明施工管理规划需要根据施工现场文明施工管理目标制定，使文明施工管理形成良好的运行模式。安全文明施工规划应在工程开工前编制，其主要内容有：工程概况；安全方针、目标；安全文明施工管理组织机构；安全文明施工责任制等各项规章制度；环境保护措施（包括粉尘、噪声控制措施，现场排水和污水处理措施，植被保护措施，施工区域内现有市政管网和周围的建、构筑物的保护）；应急预案等。',memory:'【口诀】"环境因素识别：大气水土壤噪声废物"——环境因素。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'根据现行绿色施工评价标准，下列施工现场环境保护评价指标中，属于控制项的是（ ）。',options:['对集中堆放在施工现场的土方应采取抑尘措施', '施工现场厨房烟气应净化后排放', '施工现场应在醒目位置设环境保护标识', '施工现场垃圾应分类、封闭、集中堆放'],answer:[2],analysis:'“控制项” 包括以下内容：(1) 绿色施工策划文件中应包含环境保护内容，并建立环境保护管理制度。(2) 施工现场应在醒目位置设置环境保护标识。C 选项正确 (3) 施工现场的古迹、文物、树木及生态环境等应采取有效保护措施，制定地下文物保护应急预案。',memory:'【口诀】"大气污染防治：扬尘废气烟尘"——大气防治。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'根据绿色施工评价相关标准，在施工现场环境保护方面作为 “控制项” 进行评价的内容是（ ）。',options:['采取限时施工和遮光措施（Kimmy真帅）', '设置并清理现场厕所化粪池', '制定地下文物保护应急预案', '制定建筑垃圾减量化计划'],answer:[2],analysis:'这里的 “控制项” 是指绿色施工过程中必须达到的基本要求条款。对于施工现场环境保护而言，“控制项” 包括以下内容：(1) 绿色施工策划文件中应包含环境保护内容，并建立环境保护管理制度。(2) 施工现场应在醒目位置设置环境保护标识。(3) 施工现场的古迹、文物、树木及生态环境等应采取有效保护措施，制定地下文物保护应急预案。C 选项正确。',memory:'【口诀】"水污染防治：生产生活污水"——水防治。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'在一般项中，为了实现绿色施工，建筑垃圾回收利用率应达到（ ）。',options:['10%', '30%', '50%', '100%'],answer:[1],analysis:'(3) 建筑垃圾处置应符合下列规定：①应制定建筑垃圾减量化、资源化计划；②建筑垃圾产生量不应大于 300t / 万 m²；③建筑垃圾回收利用率应达到 30%；④现场垃圾应分类、封闭、集中堆放；⑤生活、办公区应设置可回收与不可回收垃圾桶，并定期清运；⑥生活区垃圾堆放区域应定期消毒；⑦应办理施工渣土、建筑废弃物等排放手续，按指定地点排放；⑧碎石和土石方类等应用作地基和路基回填材料；⑨废电池、废硒鼓、废墨盒、剩油漆、剩涂料等有毒有害的废弃物应封闭分类存放，设置醒目标识并回收。',memory:'【口诀】"土壤污染防治：渗漏流失沉积"——土壤防治。',section:'8.2  施工现场环境管理'},
+  {type:'single',question:'下列各项施工现场环境保护措施中，属于 “优选项” 的是（ ）。',options:['应采用低噪声设备施工', '焊接作业时，应采取挡光措施', '施工现场不应焚烧废弃物', '非装配式建筑垃圾产生量不宜大于 210t / 万 m²'],answer:[3],analysis:'“优选项” 包括以下内容：(1) 施工现场宜设置可移动环保厕所，并定期清运、消毒。(2) 现场宜采用自动喷雾（淋）降尘系统。(3) 施工场界宜设置扬尘自动监测仪，动态连续定量监测扬尘（总悬浮颗粒物 TSP,PM10）。(4) 施工场界宜设置动态连续噪声监测设施，保存昼夜噪声曲线。(5) 装配式建筑施工的垃圾排放量不宜大于 140t / 万 m²，非装配式建筑施工的垃圾排放量不宜大于 210t / 万 m²。(6) 建筑垃圾回收利用率宜达到 50%。(7) 施工现场宜采用地磅或自动监测平台，动态计量建筑废弃物重量。(8) 施工现场宜采用雨水就地渗透措施。(9) 施工现场宜采用生态环保泥浆、泥浆净化器反循环快速清孔等环境保护技术。(10) 施工现场宜采用水封爆破、静态爆破等高效降尘的先进工艺。(11) 土方施工宜采用水浸法湿润土壤等降尘方法。(12) 施工现场淤泥质渣土宜经脱水后外运。',memory:'【口诀】"噪声污染防治：机械施工交通"——噪声防治。',section:'8.2  施工现场环境管理'},
+  {type:'multi',question:'施工现场文明施工所指的 “五牌一图” 包括（ ）。',options:['工程概况牌', '组织结构图', '消防保卫牌', '文明施工牌', '安全生产牌'],answer:[0, 2, 3, 4],analysis:'在进门处悬挂工程概况、管理人员名单及监督电话、安全生产、文明施工、消防保卫五牌；施工现场总平面图。',memory:'【口诀】"固体废物管理：分类收集运输处置"——废物管理。',section:'8.2  施工现场环境管理'},
+  {type:'multi',question:'施工单位应设立安全文明施工费专用账户，做到专款专用。安全文明施工费的用途有（ ）。',options:['建立健全安全文明施工管理体系', '购置和更新施工安全防护用具及设施', '培训施工现场从事危险作业人员', '改善现场安全生产条件和作业环境', '赔付施工安全事故所造成的损失'],answer:[1, 3],analysis:'安全文明施工费是指按照有关规定，购置和更新施工安全防护用具及设施、改善现场安全生产条件和作业环境所需要的费用。建设单位应及时足额向施工单位支付安全文明施工费，为施工单位采取完善的安全文明施工措施提供资金保证。',memory:'【口诀】"光污染防治：焊接照明反光"——光防治。',section:'8.2  施工现场环境管理'},
+  {type:'multi',question:'下列关于施工现场文明施工具体要求的说法，正确的有（ ）。',options:['在进门处悬挂 “五牌一图”', '现场围挡采用封闭围挡，高度不小于 1m', '施工现场应设置密闭式垃圾站', '工地地面硬化处理', '施工垃圾必须采用相应容器或管道运输'],answer:[0, 2, 3, 4],analysis:'现场围挡采用封闭围挡，高度不小于 1.8m，选项 B 错误。其余选项均符合施工现场文明施工具体要求。所以 A、C、D、E 正确。',memory:'【口诀】"文明施工要求：围挡标牌道路材料"——文明施工。',section:'8.2  施工现场环境管理'},
+  {type:'multi',question:'在一般项中，下列关于绿色施工过程中污水排放规定的说法，正确的有（ ）。A.现场厕所应设置化粪池',options:['工程污水和试验室养护用水，检测频率不应少于 4 次 / 月', '钻孔桩作业应采用泥浆循环利用系统', '工地厨房应设置隔油池', '现场道路和材料堆放场地周边应设置排水沟'],answer:[0, 2, 3],analysis:'污水排放应符合下列规定：①现场道路和材料堆放场地周边应设置排水沟；②工程污水和试验室养护用水应处理合格后，排入市政污水管道，检测频率不应少于 1 次 / 月；③现场厕所应设置化粪池，化粪池定期清理；④工地厨房应设置隔油池，定期清理；⑤工地生活污水、预制场和搅拌站等施工污水应达标排放和利用；⑥钻孔桩作业应采用泥浆循环利用系统，不应外溢漫流。\n第9章  国际工程承包管理',memory:'【口诀】"绿色施工管理：组织规划实施评价"——施工管理。',section:'8.2  施工现场环境管理'}
+];
+
+const PASSWORD = '6666';
+let currentIndex = 0, score = 0, revealed = false;
+let userAnswers = new Array(questions.length).fill(null);
+let feedbackList = [];
+const optLabels = 'ABCDEFGHIJ'.split('');
+
+let pwPassed = false;
+function checkPassword() {
+  const i = document.getElementById('pwInput'), e = document.getElementById('pwError');
+  if (i.value===PASSWORD) {
+    pwPassed = true;
+    document.getElementById('passwordOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+    init();
+  }
+  else { e.textContent='密码错误，请重新输入'; i.style.animation='shake 0.4s'; setTimeout(()=>i.style.animation='',400); }
+}
+function initPassword() {
+  document.body.style.overflow = 'hidden';
+  document.getElementById('pwInput').focus();
+  document.getElementById('pwInput').addEventListener('keydown', function(ev) { if (ev.key==='Enter') checkPassword(); });
+  document.getElementById('pwBtn').addEventListener('click', function() { checkPassword(); });
+}
+
+function init() {
+  const js=document.getElementById('jumpSelect');
+  questions.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 题`;js.appendChild(o);});
+  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();});
+  document.getElementById('totalNum').textContent=questions.length;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q=questions[currentIndex];
+  document.getElementById('questionCard').style.display='';
+  document.getElementById('finishCard').classList.remove('show');
+  document.getElementById('sectionTag').textContent=q.section||'';
+  document.getElementById('qBadge').textContent=q.type==='single'?'单选题':'多选题';
+  document.getElementById('qBadge').className='q-badge '+(q.type==='single'?'single':'multi');
+  document.getElementById('qNumber').textContent=`第 ${currentIndex+1} 题（共 ${questions.length} 题）`;
+  document.getElementById('qText').textContent=q.question;
+  document.getElementById('qScoreText').textContent=q.type==='single'?'1分':'2分';
+  document.getElementById('currentNum').textContent=currentIndex+1;
+  document.getElementById('progressBar').style.width=((currentIndex+1)/questions.length*100)+'%';
+  document.getElementById('jumpSelect').value=currentIndex;
+  const c=document.getElementById('optionsContainer');c.innerHTML='';
+  q.options.forEach((opt,i)=>{const d=document.createElement('div');d.className='option';d.innerHTML=`<div class="opt-label">${optLabels[i]}</div><div class="opt-text">${opt}</div><div class="opt-icon"></div>`;d.addEventListener('click',()=>toggleOption(i,d));c.appendChild(d);});
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='none';
+  if(userAnswers[currentIndex]!==null){revealed=true;showResult(false);}else{revealed=false;document.getElementById('confirmBtn').disabled=false;}
+}
+
+function toggleOption(index,div) {
+  if(revealed)return;const q=questions[currentIndex];
+  if(q.type==='single'){document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));div.classList.add('selected');userAnswers[currentIndex]=[index];}
+  else{div.classList.toggle('selected');const s=[];document.querySelectorAll('.option').forEach((el,i)=>{if(el.classList.contains('selected'))s.push(i);});userAnswers[currentIndex]=s.length>0?s:null;}
+  document.getElementById('confirmBtn').disabled=!userAnswers[currentIndex]||userAnswers[currentIndex].length===0;
+}
+
+function confirmAnswer() {
+  if(revealed){const a=userAnswers.every(a=>a!==null);if(a)showFinish();else nextQuestion();return;}
+  if(!userAnswers[currentIndex])return;revealed=true;showResult(true);
+}
+
+function showResult(isConfirm) {
+  const q=questions[currentIndex],ua=userAnswers[currentIndex].slice().sort(),ca=q.answer.slice().sort();
+  const ok=ua.length===ca.length&&ua.every((v,i)=>v===ca[i]);
+  if(isConfirm){if(ok)score+=q.type==='single'?1:2;else if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0){score+=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}}document.getElementById('scoreDisplay').textContent=score;}
+  document.querySelectorAll('.option').forEach((el,i)=>{el.classList.add('disabled');if(ca.includes(i)){if(ua.includes(i))el.classList.add('correct');else el.classList.add('reveal-correct');el.querySelector('.opt-icon').textContent='✓';}else if(ua.includes(i)){el.classList.add('wrong');el.querySelector('.opt-icon').textContent='✗';}});
+  if(ok){const p=q.type==='single'?1:2;document.getElementById('expAnswer').innerHTML=`<span style="color:#38a169">✓ 回答正确！+${p}分</span>`;}
+  else{let ps=0;if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0)ps=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}document.getElementById('expAnswer').innerHTML=`<span style="color:#e53e3e">✗ 回答错误${ps>0?'（部分正确 +'+ps+'分）':''}。正确答案：${ca.map(a=>optLabels[a]).join('')}</span>`;}
+  document.getElementById('expAnalysis').innerHTML=`<div class="ea-title">📝 解析</div>${q.analysis}`;
+  if(q.memory){document.getElementById('expMemory').innerHTML=`<div class="em-title">💡 记忆技巧</div>${q.memory}`;document.getElementById('expMemory').style.display='block';}else{document.getElementById('expMemory').style.display='none';}
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('confirmBtn').textContent='下一题 ▶';document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='';
+  if(isConfirm){const a=userAnswers.every(a=>a!==null);if(a)document.getElementById('confirmBtn').textContent='查看结果 🎉';}
+}
+
+function nextQuestion() { if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} }
+
+function showFinish() {
+  document.getElementById('questionCard').style.display='none';
+  document.getElementById('finishCard').classList.add('show');
+  const t=questions.reduce((s,q)=>s+(q.type==='single'?1:2),0),w=[];
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();if(!(u.length===c.length&&u.every((v,j)=>v===c[j])))w.push(i+1);});
+  document.getElementById('finalScore').textContent=`${score} / ${t}`;
+  document.getElementById('finalDetail').textContent=`共${questions.length}题，答对${questions.length-w.length}题，答错${w.length}题`;
+  document.getElementById('reviewBtn').style.display=w.length>0?'':'none';
+}
+
+function resetQuiz() { currentIndex=0;score=0;revealed=false;userAnswers=new Array(questions.length).fill(null);feedbackList=[];document.getElementById('scoreDisplay').textContent='0';renderQuestion(); }
+
+function openReview() {
+  const l=document.getElementById('reviewList');l.innerHTML='';let h=false;
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();
+  if(!(u.length===c.length&&u.every((v,j)=>v===c[j]))){h=true;const d=document.createElement('div');d.className='review-item';d.innerHTML=`<div class="ri-q">${i+1}. ${q.question}</div><div class="ri-row ri-user">你的答案：${u.map(a=>optLabels[a]).join('')}</div><div class="ri-row ri-correct">正确答案：${c.map(a=>optLabels[a]).join('')}</div><div class="ri-kp">📝 ${q.analysis}</div>`;d.style.cursor='pointer';d.addEventListener('click',()=>{closeReview();currentIndex=i;renderQuestion();});l.appendChild(d);}});
+  if(!h)l.innerHTML='<div class="review-empty">🎉 全部正确，没有错题！</div>';
+  document.getElementById('reviewModal').classList.add('show');
+}
+function closeReview(){document.getElementById('reviewModal').classList.remove('show');}
+function openFeedback(){document.getElementById('feedbackText').value='';document.getElementById('feedbackModal').classList.add('show');}
+function closeFeedback(){document.getElementById('feedbackModal').classList.remove('show');}
+function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});closeFeedback();}
+function openFeedbackSummary(){const l=document.getElementById('feedbackSummaryList');l.innerHTML='';feedbackList.forEach(fb=>{const d=document.createElement('div');d.className='fb-item';d.innerHTML=`<div class="fb-q">第${fb.qIndex+1}题：${fb.question}</div><div class="fb-content">${fb.content}</div>`;l.appendChild(d);});document.getElementById('feedbackSummaryModal').classList.add('show');}
+function closeFeedbackSummary(){document.getElementById('feedbackSummaryModal').classList.remove('show');}
+
+initPassword();
+
+</script>
+</body>
+</html>

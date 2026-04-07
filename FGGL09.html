@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>范工管理 - 第1章 建设工程项目组织、规划与控制</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #2d3748; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.top-bar { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+.top-bar h1 { font-size: 18px; color: #4a5568; margin-bottom: 2px; font-weight: 600; }
+.top-bar .section-tag { font-size: 13px; color: #805ad5; font-weight: 500; margin-bottom: 14px; padding: 3px 10px; background: rgba(128,90,213,0.08); border-radius: 6px; display: inline-block; }
+.stats-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.progress-info { flex: 1; min-width: 200px; }
+.progress-text { font-size: 14px; color: #718096; margin-bottom: 6px; }
+.progress-text span { font-weight: 700; color: #5a67d8; }
+.progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+.score-box { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; padding: 8px 18px; border-radius: 10px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.score-box .label { font-weight: 400; font-size: 13px; opacity: 0.9; }
+.jump-select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #4a5568; background: #f7fafc; cursor: pointer; outline: none; transition: border-color 0.2s; }
+.jump-select:focus { border-color: #667eea; }
+.question-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+.q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.q-badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: white; }
+.q-badge.single { background: linear-gradient(135deg, #48bb78, #38a169); }
+.q-badge.multi { background: linear-gradient(135deg, #4299e1, #3182ce); }
+.q-score { font-size: 12px; color: #a0aec0; }
+.q-number { font-size: 15px; font-weight: 700; color: #4a5568; margin-bottom: 14px; }
+.q-text { font-size: 16px; line-height: 1.75; color: #2d3748; margin-bottom: 20px; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+.option:hover { border-color: #a3bffa; background: #f7faff; }
+.option.selected { border-color: #5a67d8; background: #ebf4ff; }
+.option.correct { border-color: #48bb78; background: #f0fff4; }
+.option.wrong { border-color: #fc8181; background: #fff5f5; }
+.option.reveal-correct { border-color: #48bb78; background: #f0fff4; }
+.option.disabled { pointer-events: none; }
+.opt-label { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #cbd5e0; color: #718096; transition: all 0.2s; }
+.option.selected .opt-label { background: #5a67d8; color: white; border-color: #5a67d8; }
+.option.correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.option.wrong .opt-label { background: #fc8181; color: white; border-color: #fc8181; }
+.option.reveal-correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.opt-text { font-size: 15px; line-height: 1.6; padding-top: 2px; color: #4a5568; }
+.opt-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 14px; color: white; margin-left: auto; }
+.option.correct .opt-icon { display: flex; background: #48bb78; }
+.option.wrong .opt-icon { display: flex; background: #fc8181; }
+.explanation { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: #f7fafc; border-left: 4px solid #5a67d8; display: none; animation: fadeIn 0.3s ease; }
+.explanation.show { display: block; }
+.explanation .exp-title { font-size: 14px; font-weight: 700; color: #5a67d8; margin-bottom: 8px; }
+.explanation .exp-answer { font-size: 15px; color: #2d3748; margin-bottom: 6px; }
+.explanation .exp-answer span { font-weight: 700; }
+.explanation .exp-analysis { font-size: 14px; color: #2c5282; margin-top: 10px; line-height: 1.7; padding: 10px 14px; background: #ebf8ff; border-radius: 8px; border-left: 3px solid #4299e1; }
+.explanation .exp-analysis .ea-title { font-weight: 700; color: #2b6cb0; }
+.explanation .exp-memory { font-size: 14px; color: #744210; margin-top: 12px; line-height: 1.7; padding: 10px 14px; background: #fffff0; border-radius: 8px; border-left: 3px solid #d69e2e; }
+.explanation .exp-memory .em-title { font-weight: 700; color: #975a16; }
+.btn-area { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+.btn { padding: 12px 32px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: #fff; color: #e53e3e; border: 2px solid #fed7d7; }
+.btn-secondary:hover { background: #fff5f5; border-color: #fc8181; }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.finish-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 48px 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; display: none; }
+.finish-card.show { display: block; }
+.finish-card .trophy { font-size: 64px; margin-bottom: 16px; }
+.finish-card h2 { font-size: 24px; color: #2d3748; margin-bottom: 8px; }
+.finish-card .final-score { font-size: 48px; font-weight: 800; color: #5a67d8; margin: 16px 0; }
+.finish-card .final-detail { font-size: 14px; color: #718096; margin-bottom: 24px; line-height: 1.8; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; }
+.modal h3 { font-size: 18px; color: #2d3748; margin-bottom: 16px; }
+.modal textarea { width: 100%; height: 120px; border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
+.modal textarea:focus { border-color: #667eea; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.modal-btns .btn { padding: 10px 24px; font-size: 14px; }
+.review-modal { background: white; border-radius: 16px; padding: 0; width: 92%; max-width: 600px; max-height: 80vh; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; display: flex; flex-direction: column; overflow: hidden; }
+.review-modal .review-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.review-modal .review-header h3 { margin-bottom: 0; font-size: 18px; color: #e53e3e; }
+.review-modal .review-close { width: 32px; height: 32px; border: none; background: #f7fafc; border-radius: 50%; font-size: 18px; cursor: pointer; color: #718096; display: flex; align-items: center; justify-content: center; }
+.review-modal .review-close:hover { background: #edf2f7; }
+.review-modal .review-list { padding: 16px 24px 24px; overflow-y: auto; flex: 1; }
+.review-item { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.review-item:last-child { margin-bottom: 0; }
+.review-item .ri-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.review-item .ri-row { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+.review-item .ri-user { color: #e53e3e; }
+.review-item .ri-correct { color: #38a169; }
+.review-empty { text-align: center; padding: 40px 20px; color: #38a169; font-size: 18px; }
+.fb-item { background: #fffff0; border: 1px solid #fefcbf; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.fb-item:last-child { margin-bottom: 0; }
+.fb-item .fb-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.fb-item .fb-content { font-size: 13px; color: #c05621; background: rgba(237, 137, 54, 0.08); padding: 10px 14px; border-radius: 8px; line-height: 1.6; }
+.password-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 999; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+.password-overlay.hidden { opacity: 0; pointer-events: none; }
+.password-card { background: white; border-radius: 20px; padding: 40px 36px; width: 90%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+.password-card .lock-icon { font-size: 48px; margin-bottom: 16px; }
+.password-card h2 { font-size: 20px; color: #2d3748; margin-bottom: 6px; }
+.password-card p { font-size: 14px; color: #a0aec0; margin-bottom: 24px; }
+.password-card input { width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; text-align: center; letter-spacing: 4px; outline: none; transition: border-color 0.2s; }
+.password-card input:focus { border-color: #667eea; }
+.password-card .pw-error { color: #e53e3e; font-size: 13px; margin-top: 10px; min-height: 20px; }
+.password-card .pw-btn { margin-top: 16px; width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.password-card .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(102,126,234,0.4); }
+.password-card .pw-btn:active { transform: translateY(0); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+</style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<body>
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-card">
+    <div class="lock-icon">🔒</div>
+    <h2>请输入访问密码</h2>
+    <p>本页面仅限授权用户使用</p>
+    <input type="password" id="pwInput" placeholder="请输入密码" autocomplete="off">
+    <div class="pw-error" id="pwError"></div>
+    <button class="pw-btn" id="pwBtn">进 入</button>
+  </div>
+</div>
+<div class="container">
+  <div class="top-bar">
+    <h1>📚 第1章 建设工程项目组织、规划与控制</h1>
+    <div class="section-tag" id="sectionTag"></div>
+    <div class="stats-row">
+      <div class="progress-info">
+        <div class="progress-text">做题进度：<span id="currentNum">1</span> / <span id="totalNum">125</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+      </div>
+      <div class="score-box"><span class="label">得分</span><span id="scoreDisplay">0</span></div>
+      <select class="jump-select" id="jumpSelect" title="跳转到指定题目"></select>
+    </div>
+  </div>
+  <div class="question-card" id="questionCard">
+    <div class="q-header">
+      <span class="q-badge" id="qBadge">单选题</span>
+      <span class="q-score" id="qScoreText"></span>
+    </div>
+    <div class="q-number" id="qNumber"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="explanation" id="explanation">
+      <div class="exp-title">📝 解析</div>
+      <div class="exp-answer" id="expAnswer"></div>
+      <div class="exp-analysis" id="expAnalysis"></div>
+      <div class="exp-memory" id="expMemory"></div>
+    </div>
+    <div class="btn-area">
+      <button class="btn btn-secondary" id="feedbackBtn" style="display:none" onclick="openFeedback()">⚠️ 题目/答案反馈</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="confirmAnswer()">确定</button>
+    </div>
+  </div>
+  <div class="finish-card" id="finishCard">
+    <div class="trophy">🎉</div>
+    <h2>练习完成！</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-detail" id="finalDetail"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="reviewBtn" onclick="openReview()" style="margin:0">❌ 查看错题</button>
+      <button class="btn btn-secondary" id="feedbackSummaryBtn" onclick="openFeedbackSummary()" style="margin:0;display:none">⚠️ 反馈汇总</button>
+      <button class="btn btn-primary" onclick="resetQuiz()" style="margin:0">🔄 重新做题</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal">
+    <h3>⚠️ 题目/答案反馈</h3>
+    <p style="font-size:14px;color:#718096;margin-bottom:12px;">请描述您认为有误的题目或答案，我们会尽快核实修正。</p>
+    <textarea id="feedbackText" placeholder="请输入您发现的问题..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeFeedback()">取消</button>
+      <button class="btn btn-primary" onclick="submitFeedback()">提交</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="reviewModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>❌ 错题汇总</h3>
+      <button class="review-close" onclick="closeReview()">✕</button>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackSummaryModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>⚠️ 反馈汇总</h3>
+      <button class="review-close" onclick="closeFeedbackSummary()">✕</button>
+    </div>
+    <div class="review-list" id="feedbackSummaryList"></div>
+  </div>
+</div>
+<script>
+const questions = [
+  {type:'single',question:'根据《对外承包工程管理条例》，对工程分包的管理要求，说法正确的是（ ）。',options:['分包单位可将工程项目转包或再分包', '工程项目的建筑施工部分可分包给未取得安全生产许可证的境内建筑施工企业', '对外承包工程的单位将工程项目分包的，应当与分包单位订立专门的工程质量和安全生产管理协议', '分包单位负责工程质量和安全生产工作统一协调、管理'],answer:[2],analysis:'选项 A 错误，分包单位不得将工程项目转包或者再分包。选项 B 错误，工程项目的建筑施工部分不得分包给未依法取得安全生产许可证的境内建筑施工企业。选项 D 错误，承包单位负责工程质量和安全生产工作统一协调、管理。',memory:'【口诀】"国际工程：跨国境工程承包"——国际工程定义。',section:'9.1  国际工程承包市场开拓'},
+  {type:'single',question:'根据《企业境外投资管理办法》，实行备案制的项目中，投资主体是地方企业且中方投资额 3 亿元及以上的，备案机关是（ ）。',options:['国家发展和改革委员会', '财政部', '国家经济委员会', '企业注册地省级政府发展和改革部门'],answer:[0],analysis:'',memory:'【口诀】"国际承包模式：施工设计施工EPC"——承包模式。',section:'9.1  国际工程承包市场开拓'},
+  {type:'single',question:'国家发展和改革委员会等七部门联合发布《关于印发〈企业境外经营合规管理指引〉的通知》（发改外资〔2018〕1916 号），企业可结合发展需要建立权责清晰的合规治理结构，（ ）是企业决策层合规管理责任。',options:['应分配充足的资源建立、制定、实施、评价、维护和改进合规管理体系', '执行合规管理制度和程序，收集合规风险信息，落实相关工作要求', '应以保证企业合规经营为目的，通过原则性顶层设计，解决合规管理工作中的权力配置问题', '应及时识别归口管理领域的合规要求，改进合规管理措施'],answer:[2],analysis:'选项 A 属于企业高级管理层的合规管理责任。选项 B、D 属于企业各执行部门及境外分支机构的管理责任。\n合规治理结构：\n(1) 决策层：解决合规管理工作中的权力配置问题。\n(2) 高级管理层：建立合规管理体系。\n(3) 企业的各执行部门及境外分支机构：应及时识别归口管理领域的合规要求，改进合规管理措施，执行合规管理制度和程序，收集合规风险信息，落实相关工作要求。',memory:'【口诀】"施工承包：单价总价成本加酬金"——施工承包。',section:'9.1  国际工程承包市场开拓'},
+  {type:'single',question:'大多数国家和地区的政府出资项目采用（ ）的方式，承包商需通过相应的资格审核后参与投标。',options:['邀请招标', '议标', '公开招标', '直接发包'],answer:[2],analysis:'政府出资项目招标：大多数采用公开招标方式。',memory:'【口诀】"EPC承包：设计采购施工一体"——EPC特点。',section:'9.1  国际工程承包市场开拓'},
+  {type:'single',question:'（ ）是国际工程承包企业需要向我国国内税务机关缴纳的主要税种。',options:['企业所得税', '增值税', '消费税', '房产税'],answer:[0],analysis:'根据我国现行税收管理政策制度，国际工程承包企业需要履行税务登记、税务变更登记、纳税申报、税款缴纳等职责。企业所得税是国际工程承包企业需要向我国国内税务机关缴纳的主要税种。',memory:'【口诀】"DB承包：设计施工总承包"——DB特点。',section:'9.1  国际工程承包市场开拓'},
+  {type:'multi',question:'根据《对外承包工程管理条例》，对外承包工程的根本性要求包括（ ）。',options:['尊重当地的风俗习惯，注重生态环境保护，促进当地经济社会发展', '应当加强对工程质量和安全生产的管理，建立、健全并严格执行工程质量和安全生产管理的规章制度', '应当维护国家利益和社会公共利益，保障外派人员的合法权益', '应当遵守工程项目所在国家或者地区的法律', '应当与境外工程项目发包人订立书面合同'],answer:[0, 2, 3],analysis:'对外承包工程的根本性要求:①应当维护国家利益和社会公共利益，保障外派人员的合法权益;②应当遵守工程项目所在国家或者地区的法律，信守合同，尊重当地的风俗习惯，注重生态环境保护，促进当地经济社会发展。',memory:'【口诀】"BOT模式：建设经营移交"——BOT模式。',section:'9.1  国际工程承包市场开拓'},
+  {type:'multi',question:'为加快形成对外承包工程发展新优势，国家鼓励建筑企业由建设施工优势为主向同时具有（ ）的综合优势转变。',options:['集成设计', '投融资', '全过程工程咨询', '工程建设', '运营服务'],answer:[1, 3, 4],analysis:'积极促进投建营综合发展。鼓励企业以建营一体化、投建管一体化等多种方式承接项目，提高产业链参与度和在国际分工中的地位，逐步实现由建设施工优势为主向投融资、工程建设、运营服务的综合优势转变。',memory:'【口诀】"PPP模式：公私合营"——PPP模式。',section:'9.1  国际工程承包市场开拓'},
+  {type:'multi',question:'根据《商务部等 19 部门关于促进对外承包工程高质量发展的指导意见》（商合发〔2019〕273 号），促进对外承包工程高质量发展的基本原则为（ ）。',options:['坚持企业主体', '坚持质量优先', '坚持发展优先', '坚持互利共赢', '坚持规范有序'],answer:[0, 1, 3, 4],analysis:'促进对外承包工程高质量发展基本原则：坚持企业主体、坚持质量优先、坚持互利共赢、坚持规范有序。',memory:'【口诀】"国际招标：公开招标邀请招标"——招标方式。',section:'9.1  国际工程承包市场开拓'},
+  {type:'multi',question:'《国务院办公厅关于促进建筑业持续健康发展的意见》（国办发〔2017〕19 号）针对加快建筑业企业 “走出去”，打造 “中国建造” 品牌，提出的要求有（ ）。',options:['加强中外标准衔接', '提高对外承包能力', '加大政策扶持力度', '积极鼓励设计咨询 “走出去”', '积极推进国际合作'],answer:[0, 1, 2],analysis:'加快建筑业企业 “走出去”：(1) 加强中外标准衔接；(2) 提高对外承包能力；(3) 加大政策扶持力度。',memory:'【口诀】"FIDIC合同：国际工程通用"——FIDIC地位。',section:'9.1  国际工程承包市场开拓'},
+  {type:'multi',question:'为了保护本地劳动力就业，世界上不少国家和地区对外籍劳务输入有严格限制，进入这些国家和地区承包工程的企业需要办理的事项有（ ）。',options:['申请获得政府担保', '申请纳税证明', '申请劳务输入配额', '申请居留签证', '申请工作许可'],answer:[2, 3, 4],analysis:'不少国家和地区为了保护本地劳动力就业，对外籍劳务输入有严格限制，一般需经过申请劳务输入配额、办理居留签证和工作许可等申请过程，并常对外籍劳务的技术水平、工作经验、受教育程度、从业工种和就业期限加以限制。',memory:'【口诀】"FIDIC红皮书：施工合同条件"——红皮书。',section:'9.1  国际工程承包市场开拓'},
+  {type:'multi',question:'技术标准是工程承包企业开拓国际市场要考虑的重要问题，目前中国对外承包工程采用的技术标准情况大体分为（ ）。',options:['采用中国标准', '有条件地采用中国标准', '采用属地标准或国际标准', '中国标准或国际标准任选', '中国标准为主、属地标准为辅'],answer:[0, 1, 2],analysis:'技术标准是工程承包企业开拓国际市场要考虑的重要问题。目前中国对外承包工程采用的技术标准情况大体分为采用中国标准、有条件地采用中国标准、采用属地标准或国际标准。',memory:'【口诀】"FIDIC黄皮书：设备设计建造"——黄皮书。',section:'9.1  国际工程承包市场开拓'},
+  {type:'multi',question:'根据《中国企业境外可持续基础设施项目实施指引》WM/T11一2025。规定社会可持续是基础设施项目实现功能的基本要求其中包括（ ）。',options:['员工权益保护', '职业健康安全管理', '工程质量管理', '宏观经济效应', '可持续信息披露'],answer:[0, 1, 2],analysis:'社会可持续：包括工程质量管理、员工权益保护、职业健康安全管理、供应链和合作方管理、社区关系五个方面。',memory:'【口诀】"FIDIC银皮书：EPC交钥匙"——银皮书。',section:'9.1  国际工程承包市场开拓'},
+  {type:'single',question:'(    )应当建立对外承包工程安全风险评估机制。',options:['国务院商务主管部门', '国家安全部', '国家建设厅', '国家工商局'],answer:[0],analysis:'国务院商务主管部门应当会同国务院有关部门建立对外承包工程安全风险评估机制。',memory:'【口诀】"国际工程特点：跨国复杂风险大"——工程特点。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'single',question:'以下有关国际工程承包商面临的风险说法不正确的是(    )。',options:['地区保护主义与歧视性政策造成的风险是社会风险', '国际市场风险加剧属于市场风险', '宗教纷争和语言冲突属于社会风险', '当地复杂的地质条件对项目产生的影响是自然风险'],answer:[0],analysis:'地区保护主义与歧视性政策对工程项目产生的影响属于政治风险。',memory:'【口诀】"国际承包市场：竞争激烈风险高"——市场特点。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'single',question:'国际工程项目的法律风险不包括(    )。',options:['市场准入制度', '行政许可制度', '外汇管制', '施工方案'],answer:[3],analysis:'施工方案风险属于技术风险。',memory:'【口诀】"承包模式选择：项目特点业主需求"——模式选择。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'single',question:'下列属于ESG评价体系中治理评价指标的是(    )。',options:['性别及性别平衡政策', '组织结构', '水资源管理', '劳动关系'],answer:[1],analysis:'选项A、D是社会评价指标；选项C是环境评价指标。',memory:'【口诀】"EPC优点：责任单一缩短工期"——EPC优点。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'single',question:'以下不属于国际工程承包业务中常见的保险险种的是(    )。',options:['工程一切险', '远洋运输险', '人寿保险', '意外伤害保险'],answer:[2],analysis:'国际工程承包业务中常见的保险险种有工程一切险、施工机具和设备险、远洋运输险、职业责任险、雇主责任险、第三者责任险、意外伤害保险、安全生产责任保险、建筑工程质量保证保险等。',memory:'【口诀】"EPC缺点：造价高择优难"——EPC缺点。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'multi',question:'汇率风险发生的基本要素是(    )。',options:['兑换机构', '外币', '政局稳定', '时间', '本币'],answer:[1, 3, 4],analysis:'本币、外币和时间是汇率风险发生的三个基本要素，中国企业需充分考虑收汇及汇率变动风险。',memory:'【口诀】"BOT特点：特许经营风险分担"——BOT特点。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'multi',question:'ESG评价指标体系由(    )方面组成。',options:['治理(G)评价指标', '环境(E)评价指标', '社会(S)评价指标', '环境(S)评价指标', '社会(G)评价指标（Kimmy真帅）'],answer:[0, 1, 2],analysis:'ESG评价指标体系由三个方面组成：(1)环境(E)评价指标。(2)社会(S)评价指标。(3)治理(G)评价指标。',memory:'【口诀】"PPP特点：长期合作风险共担"——PPP特点。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'multi',question:'国际工程承包风险包括(    )。',options:['自然风险', '用工风险', '社会风险', '资金风险', '市场风险'],answer:[0, 2, 3, 4],analysis:'国际工程承包风险分为以下十大类：1.政治风险。2.经济风险。3.市场风险。4.自然风险。5.社会风险。6.合同风险。7.资金风险。8.技术风险。9.法律风险。10.合规风险。',memory:'【口诀】"FIDIC特点：公平公正风险分担"——FIDIC特点。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'multi',question:'国际工程承包商进入国际市场的政治风险包括(    )。',options:['歧视性政策', '国际关系', '政党轮替', '外交政策', '台风'],answer:[0, 1, 2, 3],analysis:'E选项属于自然风险。',memory:'【口诀】"国际投标：资格预审投标文件"——投标程序。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'multi',question:'国际工程承包商进入国际市场的社会风险包括(    )。',options:['商业存在', '宗教信仰', '业主违约', '施工方案', '民族特征'],answer:[1, 4],analysis:'A选项属于法律风险；C选项属于合同风险；D选项属于技术风险。',memory:'【口诀】"投标报价：直接费间接费利润风险"——报价组成。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'multi',question:'国际工程承包企业应强化安全意识，保障外派人员人身安全，根据《对外承包工程管理条例》，企业应采取的具体措施包括(    )。',options:['为外派人员购买境外人身意外伤害保险', '对外派人员进行安全防范教育和应急知识培训，增强外派人员的安全防范意识和自我保护能力', '制定保护外派人员人身和财产安全的方案', '建立当地雇员、劳务人员管理制度', '与当地各方建立互信关系'],answer:[0, 1, 2],analysis:'选项DE是企业属地化经营，与当地建立互信关系的内容。',memory:'【口诀】"汇率风险：外汇浮动损失"——汇率风险。',section:'9.2  国际工程承包风险及应对策略'},
+  {type:'single',question:'对于要在开工后才由业主研究决定是否实施的暂定项，对大概率要实施的暂定项单价可考虑(    )。',options:['低报', '适当低报', '高报', '适当高报'],answer:[3],analysis:'对于要在开工后才由业主研究决定是否实施的暂定项，对大概率要实施的暂定项单价可考虑适当高报。',memory:'【口诀】"物价风险：材料设备涨价"——物价风险。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'FIDIC出版的《施工合同条件》又称(    )。',options:['“新红皮书”', '“银皮书”', '“红皮书”', '“绿皮书”'],answer:[0],analysis:'FIDIC出版的《施工合同条件》又称“新红皮书”。',memory:'【口诀】"政治风险：战争内乱国有化"——政治风险。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'根据FIDIC《施工合同条件》，施工合同优先解释顺序正确的是(    )。',options:['③①②④', '③①④②', '①③②④', '①③④②'],answer:[2],analysis:'根据FIDIC《施工合同条件》(新红皮书)，施工合同由如下文件组成，如有矛盾、歧义或不一致，优先解释顺序如下：①合同协议书；②中标函；③投标函；④专用条件A部分—合同数据；⑤专用条件B部分—特别规定；⑥通用条件；⑦规范要求；⑧图纸；⑨资料表；⑩联营体承诺书(如果承包商是联营体)；⑪构成合同组成部分的任何其他文件。',memory:'【口诀】"法律风险：法律变化解释"——法律风险。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'工程师应在开工日期前至少(    )天向承包商发出开工日期的通知。',options:['7', '14', '21', '24'],answer:[1],analysis:'工程师应在开工日期前至少14天向承包商发出开工日期的通知。',memory:'【口诀】"不可抗力：自然灾害战争"——不可抗力。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'如果因为某项缺陷达到使工程或主要永久设备不能按原定目的使用的程度，业主有权对其缺陷通知期限提出一个延长期，但缺陷通知期满后的延长不得超过(    )年。',options:['1', '2', '3', '4'],answer:[1],analysis:'如果因为某项缺陷达到使工程或主要永久设备不能按原定目的使用的程度，业主有权对其缺陷通知期限提出一个延长期，但缺陷通知期满后的延长不得超过2年。',memory:'【口诀】"工程保险：一切险责任险人身险"——保险类型。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'AIA系列合同条件主要用于(    )。',options:['私营的房屋建筑工程', '民宅', '公共建筑', '高层建筑'],answer:[0],analysis:'AIA系列合同条件主要用于私营的房屋建筑工程。',memory:'【口诀】"保函：投标履约预付款"——保函类型。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'关于国际工程投标策略的说法不正确的是(    )。',options:['在国际工程项目跟踪和投标选择时，应遵循择优原则，不盲目投标', '投标文件是投标人报价的基础', '投标人应开展对招标项目及其环境条件的调查和现场考察，掌握当地情况', '工程量的确认和复核是做好投标报价的基础和前提'],answer:[1],analysis:'招标文件是投标人报价的基础，获得招标文件之后要加紧全面仔细研究，明确界定项目工作范围，充分把握招标内容和要求，尤其是对标价可能产生重大影响的内容。',memory:'【口诀】"索赔：工期索赔费用索赔"——索赔类型。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'(    )是做好投标报价的基础和前提。',options:['工程量的确认和复核', '施工方案的比选和制定', '合同价款的确认', '项目环境的调查'],answer:[0],analysis:'工程量的确认和复核是做好投标报价的基础和前提。',memory:'【口诀】"争端解决：协商调解仲裁诉讼"——争端解决。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'在FIDIC施工合同条件下，工程各参与方的责任与义务说法正确的是(    )。',options:['承包商委托任命工程师进行合同管理', '业主协助承包商申办工程所在国法律要求的相关许可', '业主办理工程保险', '工程师可以解除任何一方依照合同具有的职责、义务或责任'],answer:[1],analysis:'A选项为业主委托任命工程师进行合同管理；C选项为承包商办理工程保险；D选项为工程师无权解除任何一方依照合同具有的职责、义务或责任。',memory:'【口诀】"DAB争端裁决委员会：FIDIC推荐"——DAB机制。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'国际工程承包商在甄选项目、初步确定投标策略时，宜采用的方法是（ ）。',options:['PERT 分析法', 'LCC 评估法', 'LCA 评估法', 'SWOT 分析法'],answer:[3],analysis:'投标人在投标之前应就投标项目开展考虑自身内部的优势（Strengths）、劣势（Weaknesses）和外部市场环境的机会（Opportunities）与威胁（Threats）的 SWOT 分析，以帮助制定投标的策略定位。',memory:'【口诀】"国际投标决策：项目分析风险评估"——投标决策。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'根据英国土木工程师学会（ICE）颁布的工程施工合同（ECC），在提交诉讼或仲裁之前，能够裁决合同争议的人员或机构是（ ）。',options:['高级代表、裁决员', '工程师、争端避免委员会', '建筑师、高级代表', '裁决员、争端避免委员会'],answer:[0],analysis:'争议解决与避免程序提供了下列三种争端解决程序，使用者可根据需要，选择其中一种来完成主要选项的配置：\n①高级代表—裁决员—诉讼/仲裁。\n②高级代表（可跳过）—裁决员—诉讼/仲裁。\n③争端避免委员会—诉讼/仲裁。',memory:'【口诀】"报价策略：高价低价平衡价"——报价策略。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'根据 FIDIC《施工合同条件》，合同条款未规定“费用加利润”中的利润计取比例时，应按（ ）计取。',options:['5%', '2%', '3%', '10%'],answer:[0],analysis:'费用加利润是指合同数据中规定的费用加上适当比例的利润（如未规定，则按 5%）。',memory:'【口诀】"国际工程风险：政治经济法律技术自然"——风险类型。',section:'9.3  国际工程投标与合同管理'},
+  {type:'single',question:'FIDIC《施工合同条件》规定，业主应在收到工程师签发的最终付款证书（ ）天内向承包商付款。',options:['14', '21', '28（Kimmy真帅）', '56'],answer:[3],analysis:'业主应在收到工程师签发的最终付款证书 56 天内向承包商付款。',memory:'【口诀】"风险管理：识别评估应对监控"——风险管理。',section:'9.3  国际工程投标与合同管理'},
+  {type:'multi',question:'投标人在投标之前应就投标项目开展考虑(    )。',options:['外部市场环境的机遇', '自身内部的优势', '自身内部的劣势', '外部市场环境的机会', '外部市场环境的威胁'],answer:[1, 2, 3, 4],analysis:'投标人在投标之前应就投标项目开展考虑自身内部的优势(Strengths)、劣势(Weaknesses)和外部市场环境的机会(Opportunities)与威胁(Threats)SWOT分析，以帮助制定投标的策略定位。',memory:'【口诀】"风险应对：回避减轻转移自留"——应对策略。',section:'9.3  国际工程投标与合同管理'},
+  {type:'multi',question:'以下属于投标前社会经济环境调查的是(    )。',options:['业主资信', '地形', '当地汇率', '劳动力供应状况及价格水平', '物资设备购置租赁条件'],answer:[2, 3, 4],analysis:'A选项属于业主方和竞争者调查；B选项属于施工现场及周边地区的环境考察。',memory:'【口诀】"保险策略：保险种类范围免赔"——保险策略。',section:'9.3  国际工程投标与合同管理'},
+  {type:'multi',question:'可考虑偏低投标报价水平的是(    )。',options:['支付条件好', '公司目前急于打入某一地区', '投标对手多', '施工条件差', '业主对工期要求过紧'],answer:[0, 1, 2],analysis:'DE选项属于可考虑偏高报价的投标报价。',memory:'【口诀】"索赔依据：合同法律事实"——索赔依据。',section:'9.3  国际工程投标与合同管理'},
+  {type:'multi',question:'下列关于不平衡报价策略，说法错误的是(    )。',options:['项目前期款项支付时间早的工程内容可以偏高报价', '项目前期款项支付时间早的工程内容可以偏低报价', '对于推荐的备品备件可以适当偏高报价', '项目后期实施的工程内容可以偏低报价', '对于推荐的备品备件可以适当偏低报价'],answer:[1, 4],analysis:'B选项正确说法是：项目前期款项支付时间早的工程内容可以偏高报价；E选项正确说法是：对于推荐的备品备件可以适当偏高报价。',memory:'【口诀】"索赔程序：通知证明计算"——索赔程序。',section:'9.3  国际工程投标与合同管理'},
+  {type:'multi',question:'根据银皮书，承包商有权提出延长竣工时间索赔的情形有(    )。',options:['恶劣气候', '根据合同条件承包商有权获得竣工时间的延长（Kimmy真帅）', '由分包方造成的延误', '由业主造成的延误', '根据合同变更的规定'],answer:[1, 3, 4],analysis:'根据银皮书，承包商有权提出延长竣工时间索赔的情形只有下列3种：①根据合同变更的规定；②根据合同条件承包商有权获得竣工时间的延长；③由业主或在现场的业主的其他承包商造成的延误或阻碍(或因流行病或政府行为导致的由业主提供的材料的不可预见的短缺)。',memory:'【口诀】"索赔计算：直接费间接费利润"——索赔计算。',section:'9.3  国际工程投标与合同管理'},
+  {type:'multi',question:'NEC系列合同条件主要包括(    )。',options:['专业服务合同', '工程施工合同', '专业分包合同', '工程施工分包合同', '裁决人合同'],answer:[0, 1, 3, 4],analysis:'NEC系列合同条件主要包括：(1)工程施工合同。(2)工程施工分包合同。(3)专业服务合同。(4)裁决人合同。',memory:'【口诀】"争端解决方式：友好协商调解仲裁诉讼"——解决方式。',section:'9.3  国际工程投标与合同管理'},
+  {type:'multi',question:'ECC合同核心条款包括(    )。',options:['试车', '承包商的主要责任', '结算方式', '工期', '付款'],answer:[1, 3, 4],analysis:'核心条款(CoreClauses)是施工合同的主要共性条款，内容包括：总则、承包商的主要责任、工期、测试和缺陷、付款、补偿事件、所有权、风险和保险、争端和合同终止条件，构成施工合同的基本构架。',memory:'【口诀】"仲裁特点：自愿专业保密快捷"——仲裁特点。',section:'9.3  国际工程投标与合同管理'},
+  {type:'multi',question:'投标人应开展对招标项目及其环境条件的调查和现场考察，掌握当地情况，具体包括(    )。',options:['社会经济环境调查', '业主方和竞争者调查', '盈利模式考察', '施工现场及周边地区的环境考察', '对招标项目做简单类比'],answer:[0, 1, 3],analysis:'投标人应开展对招标项目及其环境条件的调查和现场考察，掌握当地情况，具体包括业主方和竞争者调查、社会经济环境调查、施工现场及周边地区环境考察。\n第10章  建设工程项目管理智能化',memory:'【口诀】"国际工程管理：跨文化沟通协调"——管理特点。',section:'9.3  国际工程投标与合同管理'}
+];
+
+const PASSWORD = '6666';
+let currentIndex = 0, score = 0, revealed = false;
+let userAnswers = new Array(questions.length).fill(null);
+let feedbackList = [];
+const optLabels = 'ABCDEFGHIJ'.split('');
+
+let pwPassed = false;
+function checkPassword() {
+  const i = document.getElementById('pwInput'), e = document.getElementById('pwError');
+  if (i.value===PASSWORD) {
+    pwPassed = true;
+    document.getElementById('passwordOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+    init();
+  }
+  else { e.textContent='密码错误，请重新输入'; i.style.animation='shake 0.4s'; setTimeout(()=>i.style.animation='',400); }
+}
+function initPassword() {
+  document.body.style.overflow = 'hidden';
+  document.getElementById('pwInput').focus();
+  document.getElementById('pwInput').addEventListener('keydown', function(ev) { if (ev.key==='Enter') checkPassword(); });
+  document.getElementById('pwBtn').addEventListener('click', function() { checkPassword(); });
+}
+
+function init() {
+  const js=document.getElementById('jumpSelect');
+  questions.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 题`;js.appendChild(o);});
+  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();});
+  document.getElementById('totalNum').textContent=questions.length;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q=questions[currentIndex];
+  document.getElementById('questionCard').style.display='';
+  document.getElementById('finishCard').classList.remove('show');
+  document.getElementById('sectionTag').textContent=q.section||'';
+  document.getElementById('qBadge').textContent=q.type==='single'?'单选题':'多选题';
+  document.getElementById('qBadge').className='q-badge '+(q.type==='single'?'single':'multi');
+  document.getElementById('qNumber').textContent=`第 ${currentIndex+1} 题（共 ${questions.length} 题）`;
+  document.getElementById('qText').textContent=q.question;
+  document.getElementById('qScoreText').textContent=q.type==='single'?'1分':'2分';
+  document.getElementById('currentNum').textContent=currentIndex+1;
+  document.getElementById('progressBar').style.width=((currentIndex+1)/questions.length*100)+'%';
+  document.getElementById('jumpSelect').value=currentIndex;
+  const c=document.getElementById('optionsContainer');c.innerHTML='';
+  q.options.forEach((opt,i)=>{const d=document.createElement('div');d.className='option';d.innerHTML=`<div class="opt-label">${optLabels[i]}</div><div class="opt-text">${opt}</div><div class="opt-icon"></div>`;d.addEventListener('click',()=>toggleOption(i,d));c.appendChild(d);});
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='none';
+  if(userAnswers[currentIndex]!==null){revealed=true;showResult(false);}else{revealed=false;document.getElementById('confirmBtn').disabled=false;}
+}
+
+function toggleOption(index,div) {
+  if(revealed)return;const q=questions[currentIndex];
+  if(q.type==='single'){document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));div.classList.add('selected');userAnswers[currentIndex]=[index];}
+  else{div.classList.toggle('selected');const s=[];document.querySelectorAll('.option').forEach((el,i)=>{if(el.classList.contains('selected'))s.push(i);});userAnswers[currentIndex]=s.length>0?s:null;}
+  document.getElementById('confirmBtn').disabled=!userAnswers[currentIndex]||userAnswers[currentIndex].length===0;
+}
+
+function confirmAnswer() {
+  if(revealed){const a=userAnswers.every(a=>a!==null);if(a)showFinish();else nextQuestion();return;}
+  if(!userAnswers[currentIndex])return;revealed=true;showResult(true);
+}
+
+function showResult(isConfirm) {
+  const q=questions[currentIndex],ua=userAnswers[currentIndex].slice().sort(),ca=q.answer.slice().sort();
+  const ok=ua.length===ca.length&&ua.every((v,i)=>v===ca[i]);
+  if(isConfirm){if(ok)score+=q.type==='single'?1:2;else if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0){score+=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}}document.getElementById('scoreDisplay').textContent=score;}
+  document.querySelectorAll('.option').forEach((el,i)=>{el.classList.add('disabled');if(ca.includes(i)){if(ua.includes(i))el.classList.add('correct');else el.classList.add('reveal-correct');el.querySelector('.opt-icon').textContent='✓';}else if(ua.includes(i)){el.classList.add('wrong');el.querySelector('.opt-icon').textContent='✗';}});
+  if(ok){const p=q.type==='single'?1:2;document.getElementById('expAnswer').innerHTML=`<span style="color:#38a169">✓ 回答正确！+${p}分</span>`;}
+  else{let ps=0;if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0)ps=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}document.getElementById('expAnswer').innerHTML=`<span style="color:#e53e3e">✗ 回答错误${ps>0?'（部分正确 +'+ps+'分）':''}。正确答案：${ca.map(a=>optLabels[a]).join('')}</span>`;}
+  document.getElementById('expAnalysis').innerHTML=`<div class="ea-title">📝 解析</div>${q.analysis}`;
+  if(q.memory){document.getElementById('expMemory').innerHTML=`<div class="em-title">💡 记忆技巧</div>${q.memory}`;document.getElementById('expMemory').style.display='block';}else{document.getElementById('expMemory').style.display='none';}
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('confirmBtn').textContent='下一题 ▶';document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='';
+  if(isConfirm){const a=userAnswers.every(a=>a!==null);if(a)document.getElementById('confirmBtn').textContent='查看结果 🎉';}
+}
+
+function nextQuestion() { if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} }
+
+function showFinish() {
+  document.getElementById('questionCard').style.display='none';
+  document.getElementById('finishCard').classList.add('show');
+  const t=questions.reduce((s,q)=>s+(q.type==='single'?1:2),0),w=[];
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();if(!(u.length===c.length&&u.every((v,j)=>v===c[j])))w.push(i+1);});
+  document.getElementById('finalScore').textContent=`${score} / ${t}`;
+  document.getElementById('finalDetail').textContent=`共${questions.length}题，答对${questions.length-w.length}题，答错${w.length}题`;
+  document.getElementById('reviewBtn').style.display=w.length>0?'':'none';
+}
+
+function resetQuiz() { currentIndex=0;score=0;revealed=false;userAnswers=new Array(questions.length).fill(null);feedbackList=[];document.getElementById('scoreDisplay').textContent='0';renderQuestion(); }
+
+function openReview() {
+  const l=document.getElementById('reviewList');l.innerHTML='';let h=false;
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();
+  if(!(u.length===c.length&&u.every((v,j)=>v===c[j]))){h=true;const d=document.createElement('div');d.className='review-item';d.innerHTML=`<div class="ri-q">${i+1}. ${q.question}</div><div class="ri-row ri-user">你的答案：${u.map(a=>optLabels[a]).join('')}</div><div class="ri-row ri-correct">正确答案：${c.map(a=>optLabels[a]).join('')}</div><div class="ri-kp">📝 ${q.analysis}</div>`;d.style.cursor='pointer';d.addEventListener('click',()=>{closeReview();currentIndex=i;renderQuestion();});l.appendChild(d);}});
+  if(!h)l.innerHTML='<div class="review-empty">🎉 全部正确，没有错题！</div>';
+  document.getElementById('reviewModal').classList.add('show');
+}
+function closeReview(){document.getElementById('reviewModal').classList.remove('show');}
+function openFeedback(){document.getElementById('feedbackText').value='';document.getElementById('feedbackModal').classList.add('show');}
+function closeFeedback(){document.getElementById('feedbackModal').classList.remove('show');}
+function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});closeFeedback();}
+function openFeedbackSummary(){const l=document.getElementById('feedbackSummaryList');l.innerHTML='';feedbackList.forEach(fb=>{const d=document.createElement('div');d.className='fb-item';d.innerHTML=`<div class="fb-q">第${fb.qIndex+1}题：${fb.question}</div><div class="fb-content">${fb.content}</div>`;l.appendChild(d);});document.getElementById('feedbackSummaryModal').classList.add('show');}
+function closeFeedbackSummary(){document.getElementById('feedbackSummaryModal').classList.remove('show');}
+
+initPassword();
+
+</script>
+</body>
+</html>

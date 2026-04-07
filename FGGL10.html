@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>范工管理 - 第1章 建设工程项目组织、规划与控制</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #2d3748; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.top-bar { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+.top-bar h1 { font-size: 18px; color: #4a5568; margin-bottom: 2px; font-weight: 600; }
+.top-bar .section-tag { font-size: 13px; color: #805ad5; font-weight: 500; margin-bottom: 14px; padding: 3px 10px; background: rgba(128,90,213,0.08); border-radius: 6px; display: inline-block; }
+.stats-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.progress-info { flex: 1; min-width: 200px; }
+.progress-text { font-size: 14px; color: #718096; margin-bottom: 6px; }
+.progress-text span { font-weight: 700; color: #5a67d8; }
+.progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+.score-box { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; padding: 8px 18px; border-radius: 10px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.score-box .label { font-weight: 400; font-size: 13px; opacity: 0.9; }
+.jump-select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #4a5568; background: #f7fafc; cursor: pointer; outline: none; transition: border-color 0.2s; }
+.jump-select:focus { border-color: #667eea; }
+.question-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+.q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.q-badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: white; }
+.q-badge.single { background: linear-gradient(135deg, #48bb78, #38a169); }
+.q-badge.multi { background: linear-gradient(135deg, #4299e1, #3182ce); }
+.q-score { font-size: 12px; color: #a0aec0; }
+.q-number { font-size: 15px; font-weight: 700; color: #4a5568; margin-bottom: 14px; }
+.q-text { font-size: 16px; line-height: 1.75; color: #2d3748; margin-bottom: 20px; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+.option:hover { border-color: #a3bffa; background: #f7faff; }
+.option.selected { border-color: #5a67d8; background: #ebf4ff; }
+.option.correct { border-color: #48bb78; background: #f0fff4; }
+.option.wrong { border-color: #fc8181; background: #fff5f5; }
+.option.reveal-correct { border-color: #48bb78; background: #f0fff4; }
+.option.disabled { pointer-events: none; }
+.opt-label { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #cbd5e0; color: #718096; transition: all 0.2s; }
+.option.selected .opt-label { background: #5a67d8; color: white; border-color: #5a67d8; }
+.option.correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.option.wrong .opt-label { background: #fc8181; color: white; border-color: #fc8181; }
+.option.reveal-correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.opt-text { font-size: 15px; line-height: 1.6; padding-top: 2px; color: #4a5568; }
+.opt-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 14px; color: white; margin-left: auto; }
+.option.correct .opt-icon { display: flex; background: #48bb78; }
+.option.wrong .opt-icon { display: flex; background: #fc8181; }
+.explanation { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: #f7fafc; border-left: 4px solid #5a67d8; display: none; animation: fadeIn 0.3s ease; }
+.explanation.show { display: block; }
+.explanation .exp-title { font-size: 14px; font-weight: 700; color: #5a67d8; margin-bottom: 8px; }
+.explanation .exp-answer { font-size: 15px; color: #2d3748; margin-bottom: 6px; }
+.explanation .exp-answer span { font-weight: 700; }
+.explanation .exp-analysis { font-size: 14px; color: #2c5282; margin-top: 10px; line-height: 1.7; padding: 10px 14px; background: #ebf8ff; border-radius: 8px; border-left: 3px solid #4299e1; }
+.explanation .exp-analysis .ea-title { font-weight: 700; color: #2b6cb0; }
+.explanation .exp-memory { font-size: 14px; color: #744210; margin-top: 12px; line-height: 1.7; padding: 10px 14px; background: #fffff0; border-radius: 8px; border-left: 3px solid #d69e2e; }
+.explanation .exp-memory .em-title { font-weight: 700; color: #975a16; }
+.btn-area { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+.btn { padding: 12px 32px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: #fff; color: #e53e3e; border: 2px solid #fed7d7; }
+.btn-secondary:hover { background: #fff5f5; border-color: #fc8181; }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.finish-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 48px 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; display: none; }
+.finish-card.show { display: block; }
+.finish-card .trophy { font-size: 64px; margin-bottom: 16px; }
+.finish-card h2 { font-size: 24px; color: #2d3748; margin-bottom: 8px; }
+.finish-card .final-score { font-size: 48px; font-weight: 800; color: #5a67d8; margin: 16px 0; }
+.finish-card .final-detail { font-size: 14px; color: #718096; margin-bottom: 24px; line-height: 1.8; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; }
+.modal h3 { font-size: 18px; color: #2d3748; margin-bottom: 16px; }
+.modal textarea { width: 100%; height: 120px; border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
+.modal textarea:focus { border-color: #667eea; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.modal-btns .btn { padding: 10px 24px; font-size: 14px; }
+.review-modal { background: white; border-radius: 16px; padding: 0; width: 92%; max-width: 600px; max-height: 80vh; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; display: flex; flex-direction: column; overflow: hidden; }
+.review-modal .review-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.review-modal .review-header h3 { margin-bottom: 0; font-size: 18px; color: #e53e3e; }
+.review-modal .review-close { width: 32px; height: 32px; border: none; background: #f7fafc; border-radius: 50%; font-size: 18px; cursor: pointer; color: #718096; display: flex; align-items: center; justify-content: center; }
+.review-modal .review-close:hover { background: #edf2f7; }
+.review-modal .review-list { padding: 16px 24px 24px; overflow-y: auto; flex: 1; }
+.review-item { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.review-item:last-child { margin-bottom: 0; }
+.review-item .ri-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.review-item .ri-row { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+.review-item .ri-user { color: #e53e3e; }
+.review-item .ri-correct { color: #38a169; }
+.review-empty { text-align: center; padding: 40px 20px; color: #38a169; font-size: 18px; }
+.fb-item { background: #fffff0; border: 1px solid #fefcbf; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.fb-item:last-child { margin-bottom: 0; }
+.fb-item .fb-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.fb-item .fb-content { font-size: 13px; color: #c05621; background: rgba(237, 137, 54, 0.08); padding: 10px 14px; border-radius: 8px; line-height: 1.6; }
+.password-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 999; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+.password-overlay.hidden { opacity: 0; pointer-events: none; }
+.password-card { background: white; border-radius: 20px; padding: 40px 36px; width: 90%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+.password-card .lock-icon { font-size: 48px; margin-bottom: 16px; }
+.password-card h2 { font-size: 20px; color: #2d3748; margin-bottom: 6px; }
+.password-card p { font-size: 14px; color: #a0aec0; margin-bottom: 24px; }
+.password-card input { width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; text-align: center; letter-spacing: 4px; outline: none; transition: border-color 0.2s; }
+.password-card input:focus { border-color: #667eea; }
+.password-card .pw-error { color: #e53e3e; font-size: 13px; margin-top: 10px; min-height: 20px; }
+.password-card .pw-btn { margin-top: 16px; width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.password-card .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(102,126,234,0.4); }
+.password-card .pw-btn:active { transform: translateY(0); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+</style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<body>
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-card">
+    <div class="lock-icon">🔒</div>
+    <h2>请输入访问密码</h2>
+    <p>本页面仅限授权用户使用</p>
+    <input type="password" id="pwInput" placeholder="请输入密码" autocomplete="off">
+    <div class="pw-error" id="pwError"></div>
+    <button class="pw-btn" id="pwBtn">进 入</button>
+  </div>
+</div>
+<div class="container">
+  <div class="top-bar">
+    <h1>📚 第1章 建设工程项目组织、规划与控制</h1>
+    <div class="section-tag" id="sectionTag"></div>
+    <div class="stats-row">
+      <div class="progress-info">
+        <div class="progress-text">做题进度：<span id="currentNum">1</span> / <span id="totalNum">125</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+      </div>
+      <div class="score-box"><span class="label">得分</span><span id="scoreDisplay">0</span></div>
+      <select class="jump-select" id="jumpSelect" title="跳转到指定题目"></select>
+    </div>
+  </div>
+  <div class="question-card" id="questionCard">
+    <div class="q-header">
+      <span class="q-badge" id="qBadge">单选题</span>
+      <span class="q-score" id="qScoreText"></span>
+    </div>
+    <div class="q-number" id="qNumber"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="explanation" id="explanation">
+      <div class="exp-title">📝 解析</div>
+      <div class="exp-answer" id="expAnswer"></div>
+      <div class="exp-analysis" id="expAnalysis"></div>
+      <div class="exp-memory" id="expMemory"></div>
+    </div>
+    <div class="btn-area">
+      <button class="btn btn-secondary" id="feedbackBtn" style="display:none" onclick="openFeedback()">⚠️ 题目/答案反馈</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="confirmAnswer()">确定</button>
+    </div>
+  </div>
+  <div class="finish-card" id="finishCard">
+    <div class="trophy">🎉</div>
+    <h2>练习完成！</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-detail" id="finalDetail"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="reviewBtn" onclick="openReview()" style="margin:0">❌ 查看错题</button>
+      <button class="btn btn-secondary" id="feedbackSummaryBtn" onclick="openFeedbackSummary()" style="margin:0;display:none">⚠️ 反馈汇总</button>
+      <button class="btn btn-primary" onclick="resetQuiz()" style="margin:0">🔄 重新做题</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal">
+    <h3>⚠️ 题目/答案反馈</h3>
+    <p style="font-size:14px;color:#718096;margin-bottom:12px;">请描述您认为有误的题目或答案，我们会尽快核实修正。</p>
+    <textarea id="feedbackText" placeholder="请输入您发现的问题..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeFeedback()">取消</button>
+      <button class="btn btn-primary" onclick="submitFeedback()">提交</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="reviewModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>❌ 错题汇总</h3>
+      <button class="review-close" onclick="closeReview()">✕</button>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackSummaryModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>⚠️ 反馈汇总</h3>
+      <button class="review-close" onclick="closeFeedbackSummary()">✕</button>
+    </div>
+    <div class="review-list" id="feedbackSummaryList"></div>
+  </div>
+</div>
+<script>
+const questions = [
+  {type:'single',question:'建筑信息模型是指在(    )内，对其物理和功能特性进行数字化表达。',options:['建设工程全寿命期', '建设工程施工阶段', '建设工程决策阶段', '建设工程保修阶段'],answer:[0],analysis:'建筑信息模型是指在建设工程全寿命期内，对其物理和功能特性进行数字化表达。',memory:'【口诀】"智能建造：信息技术与建造融合"——智能建造定义。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'single',question:'除对工程对象进行3D几何信息和拓扑关系的描述外，还包括完整的工程信息描述，这体现了(    )。',options:['模型操作的可视化（Kimmy真帅）', '模型信息的一致性', '模型信息的完备性', '模型信息的关联性'],answer:[2],analysis:'除对工程对象进行3D几何信息和拓扑关系的描述外，还包括完整的工程信息描述，这体现了模型信息的完备性。',memory:'【口诀】"BIM技术：建筑信息模型"——BIM定义。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'single',question:'建筑信息模型中的信息可以随着工程建设不同阶段和变化而更新和调整，这体现了(    )。',options:['模型操作的可视化', '模型信息的一致性', '模型信息的动态性（Kimmy真帅）', '模型信息的关联性'],answer:[2],analysis:'建筑信息模型中的信息可以随着工程建设不同阶段和变化而更新和调整，这体现了模型信息的动态性。',memory:'【口诀】"BIM特点：可视化协调性模拟性"——BIM特点。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'single',question:'“模型深度等级”(LevelofDevelopment，LOD)，通常用(    )代表不同阶段的深度要求。',options:['100～200', '100～300', '100～400', '100～500'],answer:[3],analysis:'“模型深度等级”(LevelofDevelopment，LOD)，通常用100~500代表不同阶段的深度要求。',memory:'【口诀】"BIM应用：设计施工运维全周期"——BIM应用。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'single',question:'实现建设工程项目管理数智化的重要手段中，侧重于建造条件和场景的是(    )。',options:['建筑信息模型(BIM)', '智慧工地', '智能建造', '传统管理模式'],answer:[1],analysis:'BIM侧重于建筑模型；智能建造侧重于建造过程和方式；智慧工地侧重于建造条件和场景。',memory:'【口诀】"3D打印：增材制造技术"——3D打印。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'single',question:'下面部门或单位不可以作为BIM总协调方的是(    )。',options:['建设单位相关部门', '施工单位', '第三方咨询机构', '监理单位'],answer:[3],analysis:'BIM总协调方可以为满足要求的建设单位相关部门、设计单位、施工单位或第三方咨询机构。',memory:'【口诀】"机器人：施工自动化"——建筑机器人。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'single',question:'为了应用建筑信息模型（BIM）技术，实现对工程项目成本的估算、控制和优化，需要进行的工作是（ ）。',options:['将项目成本管理与 2D 和 3D 模型集成，形成 4D 模型', '将项目成本管理与 3D 和 4D 模型集成，形成 5D 模型', '将项目成本管理与 4D 和 5D 模型集成，形成 6D 模型', '将项目成本管理与 5D 和 6D 模型集成，形成 7D 模型'],answer:[1],analysis:'通过 BIM 技术将项目成本管理与 3D 和 4D 模型集成，形成 5D 模型。成本维度将建筑元素和工程活动与成本数据进行关联，实现对项目成本的估算、控制和优化。',memory:'【口诀】"物联网：万物互联感知"——物联网。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'multi',question:'BIM技术应用中，以下属于建设单位职责的是(    )。',options:['制定项目BIM应用方案', '与各参与方签订合同（Kimmy真帅）', '接收通过审查的BIM交付模型', '确定项目的BIM应用目标', '配置BIM团队'],answer:[1, 2, 3],analysis:'A选项是BIM总协调方职责；E选项是施工总承包单位职责。',memory:'【口诀】"大数据：数据采集分析应用"——大数据。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'multi',question:'BIM技术应用中，以下属于专业分包单位职责的是(    )。',options:['利用BIM技术辅助现场管理施工，安排施工顺序节点', '组织开展对各参与方的BIM工作流程的培训', '组织策划项目BIM实施策略', '完善分包施工BIM模型', '接受BIM总协调方和施工总承包方的监督'],answer:[0, 3, 4],analysis:'B选项是BIM总协调方职责；C选项是建设单位职责。',memory:'【口诀】"云计算：资源共享按需服务"——云计算。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'multi',question:'以下属于BIM技术在工程项目进度管理中的应用的是(    )。',options:['工程算量', '创建跟踪视图', '管理目标计划', '资金和资源动态分析', '碰撞检测'],answer:[1, 2, 3],analysis:'A选项属于BIM技术在工程项目成本管理中的应用；E选项属于BIM技术在工程项目质量管理中的应用。',memory:'【口诀】"人工智能：机器学习智能决策"——人工智能。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'multi',question:'业主在工程项目合同中设置的BIM要求应主要包括(    )。',options:['可持续性发展', '风险管理', '知识产权和保密', '档案管理', '信息管理'],answer:[1, 2, 4],analysis:'业主在工程项目合同中设置的BIM要求应主要包括以下几点：①BIM实施计划。②项目各阶段模型提交要求。③合同双方的责任和义务。④信息管理。⑤风险管理。⑥知识产权和保密。',memory:'【口诀】"智能建造技术：BIM机器人3D打印物联网"——核心技术。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'multi',question:'以下属于BIM技术在工程项目安全管理中的应用的是(    )。',options:['施工安全模拟', '施工安全宣传', '施工现场的安全措施布置', '施工安全交底', '施工安全教育'],answer:[0, 2, 4],analysis:'BIM技术在工程施工安全管理中的应用主要有以下几方面：(1)施工安全教育。(2)施工现场的安全措施布置。(3)施工安全模拟。',memory:'【口诀】"BIM价值：协同效率质量成本"——BIM价值。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'multi',question:'建筑信息模型的基本特征包括(    )。',options:['模型信息的可拓展性', '模型信息的关联性', '模型信息的可持续性', '模型信息的对比性', '模型信息的动态性'],answer:[0, 1, 4],analysis:'建筑信息模型的基本特征包括：1.模型操作的可视化。2.模型信息的完备性。3.模型信息的关联性。4.模型信息的一致性。5.模型信息的动态性。6.模型信息的可拓展性。',memory:'【口诀】"BIM维度：3D4D5D6D"——BIM维度。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'multi',question:'BIM技术在工程项目信息管理中的应用主要包括(    )。',options:['BIM内置信息分类编码、工程量清单或定额', '对工程项目信息进行集成管理', '依据合同中的BIM要求进行BIM管理', 'BIM模型能够自动更新，实现动态查询和统计预算工程量和成本信息', '利用BIM技术加强质量管理和提升施工质量'],answer:[0, 1],analysis:'选项C是BIM技术在合同管理中的应用；选项D是BIM技术在成本管理中的应用；选项E是BIM技术在质量管理中的应用。',memory:'【口诀】"4D模拟：3D加时间进度"——4D定义。',section:'10.1  建筑信息模型(BIM)及其在工程项目管理中的应用'},
+  {type:'single',question:'下列属于智能建造在推进数字化设计体系建设的是（ ）。',options:['统筹建造活动全产业链', '加强智能建造及建筑工业化应用场景建设', '加快智能建造科技成果转化应用', '推行一体化集成设计'],answer:[3],analysis:'推进数字化设计体系建设，统筹建筑结构、机电设备、部品部件、装配施工、装饰装修，推行一体化集成设计。',memory:'【口诀】"5D模拟：4D加成本造价"——5D定义。',section:'10.2  智能建造与智慧工地'},
+  {type:'single',question:'智慧工地总体架构中，负责实时感知和收集工地上的各种数据，包括人员、机械设备、物资、环境等各个方面的信息的层次是（ ）。',options:['感知层', '网络层', '应用层', '传输层'],answer:[0],analysis:'智慧工地总体架构主要可分为三个层次。(1) 感知层：这一层是智慧工地的基础，主要包括各种传感器、监控设备、无人机等终端设备。这些设备负责实时感知和收集工地上的各种数据，包括人员、机械设备、物资、环境等各个方面的信息。这些数据是智慧工地运行和决策的基础。(2) 网络层：这一层是智慧工地的数据通道和处理中枢，它起到桥梁和枢纽的作用，连接感知层和应用层，保证数据的高效流动和准确处理。包括 4G 网络、5G 网络、光纤通信、卫星通信和物联网管理中心等网络设备和技术，它们保证了数据的高速、稳定的传输，使得数据能够实时、准确地传送到需要的地方。此外，这一层还包括云计算、大数据等技术，它们负责对收集到的大量数据进行存储、处理和分析，为上层应用提供支持。(3) 应用层：这一层是智慧工地的核心，主要包括各种基于数据的智能应用。这些应用利用网络层处理和分析的数据，提供各种智能化的管理和服务，包括人员管理、机械设备管理、物资管理、环境与能耗管理、视频监控管理、施工过程检测与监测管理等。这些应用不仅提高了工地的效率和安全性，也为管理者提供了全面、准确的工地状态信息，帮助他们做出科学的决策。',memory:'【口诀】"智慧工地：感知互联智能"——智慧工地。',section:'10.2  智能建造与智慧工地'},
+  {type:'single',question:'智慧工地总体架构中，发挥桥梁和枢纽作用，并负责处理大量数据的层次是（ ）。',options:['感知层', '应用层', '网络层', '保护层'],answer:[2],analysis:'网络层：这一层是智慧工地的数据通道和处理中枢，它起到桥梁和枢纽的作用，连接感知层和应用层，保证数据的高效流动和准确处理。',memory:'【口诀】"项目管理信息化：系统平台数据"——信息化。',section:'10.2  智能建造与智慧工地'},
+  {type:'single',question:'在智慧工地建设中，通过实时数据分析和预测，优化资源配置是为了（ ）。',options:['降低成本', '保护环境', '实时监测', '提升效率'],answer:[3],analysis:'提升效率：通过实时数据分析和预测，优化资源配置，提高工作效率，实现项目精细化管理，降本增效。',memory:'【口诀】"项目管理软件：P3P6Project"——常用软件。',section:'10.2  智能建造与智慧工地'},
+  {type:'single',question:'在智慧工地的机械设备管理模块中，智能监控的机械设备对象是（ ）。',options:['挖掘机和装载机', '塔式起重机和施工升降机', '推土机和压路机', '铲车和吊车'],answer:[1],analysis:'在智慧工地的机械设备管理模块的运行中，主要考虑对塔式起重机和施工升降机的运行进行智能监控。',memory:'【口诀】"信息平台：集成共享协同"——信息平台。',section:'10.2  智能建造与智慧工地'},
+  {type:'single',question:'在智能工地运行中下列属于环境与能耗管理模块应含功能的是（ ）。',options:['混凝土温度超标报警', '扬尘监测数据超标报警', '基坑锚索应力监测和预警', '标养室恒温自动报警和控制'],answer:[1],analysis:'环境与能耗管理模块应包含以下功能：扬尘监测数据超标报警及喷淋设备自动和远程开关、固体废弃物排放量超标报警等。选项 A、C、D 属于施工过程检测与监测管理模块包含的功能。所以 B 正确。',memory:'【口诀】"数字化转型：业务流程数字化"——数字化转型。',section:'10.2  智能建造与智慧工地'},
+  {type:'multi',question:'下列属于智慧工地的基本特点的是（ ）。',options:['技术驱动', '协同工作和信息共享', '全面感知与数据收集', '信息的共享和协作', '满足施工单位管理诉求'],answer:[0, 2, 3],analysis:'(1) 技术驱动：智慧工地依赖于物联网、云计算、人工智能、大数据、移动互联网等先进的信息技术。(2) 全面感知与数据收集：智慧工地对工地上的人、机、料、法、环等生产要素进行全面的感知和数据收集，这些数据是智慧工地运行和决策的基础。(3) 信息的共享和协作：智慧工地通过系统间的信息共享和协作，实现更高效的资源利用和更科学的决策制定。智慧工地的意义在于通过全面感知和数据收集工地要素，加强安全管理、改善施工环境、优化资源配置并提升施工效率，推动工程管理方式向着数字化、网络化和智能化转型与升级。',memory:'【口诀】"智能管理：数据驱动智能决策"——智能管理。',section:'10.2  智能建造与智慧工地'}
+];
+
+const PASSWORD = '6666';
+let currentIndex = 0, score = 0, revealed = false;
+let userAnswers = new Array(questions.length).fill(null);
+let feedbackList = [];
+const optLabels = 'ABCDEFGHIJ'.split('');
+
+let pwPassed = false;
+function checkPassword() {
+  const i = document.getElementById('pwInput'), e = document.getElementById('pwError');
+  if (i.value===PASSWORD) {
+    pwPassed = true;
+    document.getElementById('passwordOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+    init();
+  }
+  else { e.textContent='密码错误，请重新输入'; i.style.animation='shake 0.4s'; setTimeout(()=>i.style.animation='',400); }
+}
+function initPassword() {
+  document.body.style.overflow = 'hidden';
+  document.getElementById('pwInput').focus();
+  document.getElementById('pwInput').addEventListener('keydown', function(ev) { if (ev.key==='Enter') checkPassword(); });
+  document.getElementById('pwBtn').addEventListener('click', function() { checkPassword(); });
+}
+
+function init() {
+  const js=document.getElementById('jumpSelect');
+  questions.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 题`;js.appendChild(o);});
+  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();});
+  document.getElementById('totalNum').textContent=questions.length;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q=questions[currentIndex];
+  document.getElementById('questionCard').style.display='';
+  document.getElementById('finishCard').classList.remove('show');
+  document.getElementById('sectionTag').textContent=q.section||'';
+  document.getElementById('qBadge').textContent=q.type==='single'?'单选题':'多选题';
+  document.getElementById('qBadge').className='q-badge '+(q.type==='single'?'single':'multi');
+  document.getElementById('qNumber').textContent=`第 ${currentIndex+1} 题（共 ${questions.length} 题）`;
+  document.getElementById('qText').textContent=q.question;
+  document.getElementById('qScoreText').textContent=q.type==='single'?'1分':'2分';
+  document.getElementById('currentNum').textContent=currentIndex+1;
+  document.getElementById('progressBar').style.width=((currentIndex+1)/questions.length*100)+'%';
+  document.getElementById('jumpSelect').value=currentIndex;
+  const c=document.getElementById('optionsContainer');c.innerHTML='';
+  q.options.forEach((opt,i)=>{const d=document.createElement('div');d.className='option';d.innerHTML=`<div class="opt-label">${optLabels[i]}</div><div class="opt-text">${opt}</div><div class="opt-icon"></div>`;d.addEventListener('click',()=>toggleOption(i,d));c.appendChild(d);});
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='none';
+  if(userAnswers[currentIndex]!==null){revealed=true;showResult(false);}else{revealed=false;document.getElementById('confirmBtn').disabled=false;}
+}
+
+function toggleOption(index,div) {
+  if(revealed)return;const q=questions[currentIndex];
+  if(q.type==='single'){document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));div.classList.add('selected');userAnswers[currentIndex]=[index];}
+  else{div.classList.toggle('selected');const s=[];document.querySelectorAll('.option').forEach((el,i)=>{if(el.classList.contains('selected'))s.push(i);});userAnswers[currentIndex]=s.length>0?s:null;}
+  document.getElementById('confirmBtn').disabled=!userAnswers[currentIndex]||userAnswers[currentIndex].length===0;
+}
+
+function confirmAnswer() {
+  if(revealed){const a=userAnswers.every(a=>a!==null);if(a)showFinish();else nextQuestion();return;}
+  if(!userAnswers[currentIndex])return;revealed=true;showResult(true);
+}
+
+function showResult(isConfirm) {
+  const q=questions[currentIndex],ua=userAnswers[currentIndex].slice().sort(),ca=q.answer.slice().sort();
+  const ok=ua.length===ca.length&&ua.every((v,i)=>v===ca[i]);
+  if(isConfirm){if(ok)score+=q.type==='single'?1:2;else if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0){score+=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}}document.getElementById('scoreDisplay').textContent=score;}
+  document.querySelectorAll('.option').forEach((el,i)=>{el.classList.add('disabled');if(ca.includes(i)){if(ua.includes(i))el.classList.add('correct');else el.classList.add('reveal-correct');el.querySelector('.opt-icon').textContent='✓';}else if(ua.includes(i)){el.classList.add('wrong');el.querySelector('.opt-icon').textContent='✗';}});
+  if(ok){const p=q.type==='single'?1:2;document.getElementById('expAnswer').innerHTML=`<span style="color:#38a169">✓ 回答正确！+${p}分</span>`;}
+  else{let ps=0;if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0)ps=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}document.getElementById('expAnswer').innerHTML=`<span style="color:#e53e3e">✗ 回答错误${ps>0?'（部分正确 +'+ps+'分）':''}。正确答案：${ca.map(a=>optLabels[a]).join('')}</span>`;}
+  document.getElementById('expAnalysis').innerHTML=`<div class="ea-title">📝 解析</div>${q.analysis}`;
+  if(q.memory){document.getElementById('expMemory').innerHTML=`<div class="em-title">💡 记忆技巧</div>${q.memory}`;document.getElementById('expMemory').style.display='block';}else{document.getElementById('expMemory').style.display='none';}
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('confirmBtn').textContent='下一题 ▶';document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='';
+  if(isConfirm){const a=userAnswers.every(a=>a!==null);if(a)document.getElementById('confirmBtn').textContent='查看结果 🎉';}
+}
+
+function nextQuestion() { if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} }
+
+function showFinish() {
+  document.getElementById('questionCard').style.display='none';
+  document.getElementById('finishCard').classList.add('show');
+  const t=questions.reduce((s,q)=>s+(q.type==='single'?1:2),0),w=[];
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();if(!(u.length===c.length&&u.every((v,j)=>v===c[j])))w.push(i+1);});
+  document.getElementById('finalScore').textContent=`${score} / ${t}`;
+  document.getElementById('finalDetail').textContent=`共${questions.length}题，答对${questions.length-w.length}题，答错${w.length}题`;
+  document.getElementById('reviewBtn').style.display=w.length>0?'':'none';
+}
+
+function resetQuiz() { currentIndex=0;score=0;revealed=false;userAnswers=new Array(questions.length).fill(null);feedbackList=[];document.getElementById('scoreDisplay').textContent='0';renderQuestion(); }
+
+function openReview() {
+  const l=document.getElementById('reviewList');l.innerHTML='';let h=false;
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();
+  if(!(u.length===c.length&&u.every((v,j)=>v===c[j]))){h=true;const d=document.createElement('div');d.className='review-item';d.innerHTML=`<div class="ri-q">${i+1}. ${q.question}</div><div class="ri-row ri-user">你的答案：${u.map(a=>optLabels[a]).join('')}</div><div class="ri-row ri-correct">正确答案：${c.map(a=>optLabels[a]).join('')}</div><div class="ri-kp">📝 ${q.analysis}</div>`;d.style.cursor='pointer';d.addEventListener('click',()=>{closeReview();currentIndex=i;renderQuestion();});l.appendChild(d);}});
+  if(!h)l.innerHTML='<div class="review-empty">🎉 全部正确，没有错题！</div>';
+  document.getElementById('reviewModal').classList.add('show');
+}
+function closeReview(){document.getElementById('reviewModal').classList.remove('show');}
+function openFeedback(){document.getElementById('feedbackText').value='';document.getElementById('feedbackModal').classList.add('show');}
+function closeFeedback(){document.getElementById('feedbackModal').classList.remove('show');}
+function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});closeFeedback();}
+function openFeedbackSummary(){const l=document.getElementById('feedbackSummaryList');l.innerHTML='';feedbackList.forEach(fb=>{const d=document.createElement('div');d.className='fb-item';d.innerHTML=`<div class="fb-q">第${fb.qIndex+1}题：${fb.question}</div><div class="fb-content">${fb.content}</div>`;l.appendChild(d);});document.getElementById('feedbackSummaryModal').classList.add('show');}
+function closeFeedbackSummary(){document.getElementById('feedbackSummaryModal').classList.remove('show');}
+
+initPassword();
+
+</script>
+</body>
+</html>

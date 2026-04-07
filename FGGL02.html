@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>范工管理 - 第1章 建设工程项目组织、规划与控制</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #2d3748; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.top-bar { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+.top-bar h1 { font-size: 18px; color: #4a5568; margin-bottom: 2px; font-weight: 600; }
+.top-bar .section-tag { font-size: 13px; color: #805ad5; font-weight: 500; margin-bottom: 14px; padding: 3px 10px; background: rgba(128,90,213,0.08); border-radius: 6px; display: inline-block; }
+.stats-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.progress-info { flex: 1; min-width: 200px; }
+.progress-text { font-size: 14px; color: #718096; margin-bottom: 6px; }
+.progress-text span { font-weight: 700; color: #5a67d8; }
+.progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+.score-box { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; padding: 8px 18px; border-radius: 10px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.score-box .label { font-weight: 400; font-size: 13px; opacity: 0.9; }
+.jump-select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #4a5568; background: #f7fafc; cursor: pointer; outline: none; transition: border-color 0.2s; }
+.jump-select:focus { border-color: #667eea; }
+.question-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+.q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.q-badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: white; }
+.q-badge.single { background: linear-gradient(135deg, #48bb78, #38a169); }
+.q-badge.multi { background: linear-gradient(135deg, #4299e1, #3182ce); }
+.q-score { font-size: 12px; color: #a0aec0; }
+.q-number { font-size: 15px; font-weight: 700; color: #4a5568; margin-bottom: 14px; }
+.q-text { font-size: 16px; line-height: 1.75; color: #2d3748; margin-bottom: 20px; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+.option:hover { border-color: #a3bffa; background: #f7faff; }
+.option.selected { border-color: #5a67d8; background: #ebf4ff; }
+.option.correct { border-color: #48bb78; background: #f0fff4; }
+.option.wrong { border-color: #fc8181; background: #fff5f5; }
+.option.reveal-correct { border-color: #48bb78; background: #f0fff4; }
+.option.disabled { pointer-events: none; }
+.opt-label { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #cbd5e0; color: #718096; transition: all 0.2s; }
+.option.selected .opt-label { background: #5a67d8; color: white; border-color: #5a67d8; }
+.option.correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.option.wrong .opt-label { background: #fc8181; color: white; border-color: #fc8181; }
+.option.reveal-correct .opt-label { background: #48bb78; color: white; border-color: #48bb78; }
+.opt-text { font-size: 15px; line-height: 1.6; padding-top: 2px; color: #4a5568; }
+.opt-icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 14px; color: white; margin-left: auto; }
+.option.correct .opt-icon { display: flex; background: #48bb78; }
+.option.wrong .opt-icon { display: flex; background: #fc8181; }
+.explanation { margin-top: 20px; padding: 18px 20px; border-radius: 12px; background: #f7fafc; border-left: 4px solid #5a67d8; display: none; animation: fadeIn 0.3s ease; }
+.explanation.show { display: block; }
+.explanation .exp-title { font-size: 14px; font-weight: 700; color: #5a67d8; margin-bottom: 8px; }
+.explanation .exp-answer { font-size: 15px; color: #2d3748; margin-bottom: 6px; }
+.explanation .exp-answer span { font-weight: 700; }
+.explanation .exp-analysis { font-size: 14px; color: #2c5282; margin-top: 10px; line-height: 1.7; padding: 10px 14px; background: #ebf8ff; border-radius: 8px; border-left: 3px solid #4299e1; }
+.explanation .exp-analysis .ea-title { font-weight: 700; color: #2b6cb0; }
+.explanation .exp-memory { font-size: 14px; color: #744210; margin-top: 12px; line-height: 1.7; padding: 10px 14px; background: #fffff0; border-radius: 8px; border-left: 3px solid #d69e2e; }
+.explanation .exp-memory .em-title { font-weight: 700; color: #975a16; }
+.btn-area { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+.btn { padding: 12px 32px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: #fff; color: #e53e3e; border: 2px solid #fed7d7; }
+.btn-secondary:hover { background: #fff5f5; border-color: #fc8181; }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.finish-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 48px 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; display: none; }
+.finish-card.show { display: block; }
+.finish-card .trophy { font-size: 64px; margin-bottom: 16px; }
+.finish-card h2 { font-size: 24px; color: #2d3748; margin-bottom: 8px; }
+.finish-card .final-score { font-size: 48px; font-weight: 800; color: #5a67d8; margin: 16px 0; }
+.finish-card .final-detail { font-size: 14px; color: #718096; margin-bottom: 24px; line-height: 1.8; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 32px; width: 90%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; }
+.modal h3 { font-size: 18px; color: #2d3748; margin-bottom: 16px; }
+.modal textarea { width: 100%; height: 120px; border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 14px; resize: vertical; outline: none; font-family: inherit; }
+.modal textarea:focus { border-color: #667eea; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.modal-btns .btn { padding: 10px 24px; font-size: 14px; }
+.review-modal { background: white; border-radius: 16px; padding: 0; width: 92%; max-width: 600px; max-height: 80vh; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.25s ease; display: flex; flex-direction: column; overflow: hidden; }
+.review-modal .review-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.review-modal .review-header h3 { margin-bottom: 0; font-size: 18px; color: #e53e3e; }
+.review-modal .review-close { width: 32px; height: 32px; border: none; background: #f7fafc; border-radius: 50%; font-size: 18px; cursor: pointer; color: #718096; display: flex; align-items: center; justify-content: center; }
+.review-modal .review-close:hover { background: #edf2f7; }
+.review-modal .review-list { padding: 16px 24px 24px; overflow-y: auto; flex: 1; }
+.review-item { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.review-item:last-child { margin-bottom: 0; }
+.review-item .ri-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.review-item .ri-row { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+.review-item .ri-user { color: #e53e3e; }
+.review-item .ri-correct { color: #38a169; }
+.review-empty { text-align: center; padding: 40px 20px; color: #38a169; font-size: 18px; }
+.fb-item { background: #fffff0; border: 1px solid #fefcbf; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.fb-item:last-child { margin-bottom: 0; }
+.fb-item .fb-q { font-size: 14px; font-weight: 600; color: #2d3748; margin-bottom: 8px; line-height: 1.6; }
+.fb-item .fb-content { font-size: 13px; color: #c05621; background: rgba(237, 137, 54, 0.08); padding: 10px 14px; border-radius: 8px; line-height: 1.6; }
+.password-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 999; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
+.password-overlay.hidden { opacity: 0; pointer-events: none; }
+.password-card { background: white; border-radius: 20px; padding: 40px 36px; width: 90%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+.password-card .lock-icon { font-size: 48px; margin-bottom: 16px; }
+.password-card h2 { font-size: 20px; color: #2d3748; margin-bottom: 6px; }
+.password-card p { font-size: 14px; color: #a0aec0; margin-bottom: 24px; }
+.password-card input { width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; text-align: center; letter-spacing: 4px; outline: none; transition: border-color 0.2s; }
+.password-card input:focus { border-color: #667eea; }
+.password-card .pw-error { color: #e53e3e; font-size: 13px; margin-top: 10px; min-height: 20px; }
+.password-card .pw-btn { margin-top: 16px; width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.password-card .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(102,126,234,0.4); }
+.password-card .pw-btn:active { transform: translateY(0); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+</style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<body>
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-card">
+    <div class="lock-icon">🔒</div>
+    <h2>请输入访问密码</h2>
+    <p>本页面仅限授权用户使用</p>
+    <input type="password" id="pwInput" placeholder="请输入密码" autocomplete="off">
+    <div class="pw-error" id="pwError"></div>
+    <button class="pw-btn" id="pwBtn">进 入</button>
+  </div>
+</div>
+<div class="container">
+  <div class="top-bar">
+    <h1>📚 第1章 建设工程项目组织、规划与控制</h1>
+    <div class="section-tag" id="sectionTag"></div>
+    <div class="stats-row">
+      <div class="progress-info">
+        <div class="progress-text">做题进度：<span id="currentNum">1</span> / <span id="totalNum">125</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+      </div>
+      <div class="score-box"><span class="label">得分</span><span id="scoreDisplay">0</span></div>
+      <select class="jump-select" id="jumpSelect" title="跳转到指定题目"></select>
+    </div>
+  </div>
+  <div class="question-card" id="questionCard">
+    <div class="q-header">
+      <span class="q-badge" id="qBadge">单选题</span>
+      <span class="q-score" id="qScoreText"></span>
+    </div>
+    <div class="q-number" id="qNumber"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="explanation" id="explanation">
+      <div class="exp-title">📝 解析</div>
+      <div class="exp-answer" id="expAnswer"></div>
+      <div class="exp-analysis" id="expAnalysis"></div>
+      <div class="exp-memory" id="expMemory"></div>
+    </div>
+    <div class="btn-area">
+      <button class="btn btn-secondary" id="feedbackBtn" style="display:none" onclick="openFeedback()">⚠️ 题目/答案反馈</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="confirmAnswer()">确定</button>
+    </div>
+  </div>
+  <div class="finish-card" id="finishCard">
+    <div class="trophy">🎉</div>
+    <h2>练习完成！</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="final-detail" id="finalDetail"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="reviewBtn" onclick="openReview()" style="margin:0">❌ 查看错题</button>
+      <button class="btn btn-secondary" id="feedbackSummaryBtn" onclick="openFeedbackSummary()" style="margin:0;display:none">⚠️ 反馈汇总</button>
+      <button class="btn btn-primary" onclick="resetQuiz()" style="margin:0">🔄 重新做题</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal">
+    <h3>⚠️ 题目/答案反馈</h3>
+    <p style="font-size:14px;color:#718096;margin-bottom:12px;">请描述您认为有误的题目或答案，我们会尽快核实修正。</p>
+    <textarea id="feedbackText" placeholder="请输入您发现的问题..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeFeedback()">取消</button>
+      <button class="btn btn-primary" onclick="submitFeedback()">提交</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="reviewModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>❌ 错题汇总</h3>
+      <button class="review-close" onclick="closeReview()">✕</button>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="feedbackSummaryModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>⚠️ 反馈汇总</h3>
+      <button class="review-close" onclick="closeFeedbackSummary()">✕</button>
+    </div>
+    <div class="review-list" id="feedbackSummaryList"></div>
+  </div>
+</div>
+<script>
+const questions = [
+  {type:'single',question:'根据 ISO 质量管理体系标准，（ ）为核心标准。',options:['《项目管理质量指南》ISO 10006：2003', '《质量管理体系 要求》ISO 9001：2015', '《质量管理体系文件指南》ISO/PR 10013：2001', '特殊行业的质量管理体系要求'],answer:[1],analysis:'ISO 质量管理体系三个核心标准为：《质量管理体系 基础和术语》GB/T 19000—2016、《质量管理体系 要求》GB/T 19001—2016、《质量管理 组织的质量 实现持续成功指南》GB/T 19004—2020。',memory:'【口诀】"ISO三体系：质安环"——质量管理体系、职业健康安全管理体系、环境管理体系。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'组织的质量管理体系按照（ ）原理运行。',options:['相关', '系统', '绩效管理', 'PDCA 循环'],answer:[3],analysis:'根据 ISO 质量管理体系标准，质量管理体系结构按照 PDCA 循环原理运行。',memory:'【口诀】"PDCA循环：策划实施检查改进"——Plan策划、Do实施、Check检查、Act改进。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'质量管理体系是指由组织机构、过程、程序和（ ）组成的有机整体，以保证产品和服务质量满足规定（或隐含）的要求。',options:['方法', '运行', '资源', '文件'],answer:[2],analysis:'根据 ISO 质量管理体系标准，质量管理体系是指由组织机构、过程、程序和资源组成的有机整体。',memory:'【口诀】"过程方法：输入输出加资源"——过程方法关注输入、输出、资源和活动。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'根据《质量管理体系基础和术语》，质量管理原则要相互关联、相互支撑其中（）是其他管理原则得以落地的引擎和保障',options:['以顾客为关注焦点', '领导作用', '过程办法', '关系管理'],answer:[1],analysis:'质量管理原则相互关联、相互支撑，共同构成一个有机整体。\n①“以顾客为关注焦点”是核心，所有其他管理原则都直接或间接地指向这个核心；\n②“领导作用”是其他管理原则得以落地的引擎和保障；\n③“过程方法”“改进”“循证决策”分别通过执行路径、循环动力、科学基础等来实现使顾客满意的目标；\n④“关系管理”是资源保障，“全员积极参与”是执行基础。',memory:'【口诀】"领导作用是关键，全员参与是基础"——质量管理七原则之首。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'根据《质量管理体系基础和术语》，质量管理原则中“过程办法”需要通过（   ）来实现使顾客满意',options:['执行路径', '循环动力', '科学基础', '绩效评价'],answer:[0],analysis:'“过程方法”“改进”“循证决策”分别通过执行路径、循环动力、科学基础等来实现使顾客满意的目标；',memory:'【口诀】"以顾客为关注焦点，持续改进永无止境"——质量管理核心原则。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'根据《质量管理体系 基础和术语》GB/T 19000—2016，循证决策原则要求施工企业在质量管理时应基于（ ）作出相关决策。',options:['与相关方的关系', '满足顾客的要求', '功能连贯的过程组成的体系', '数据和信息的分析和评价'],answer:[3],analysis:'循证决策是基于数据和信息的分析和评价的决策，更有可能产生期望的结果。',memory:'【口诀】"循证决策靠数据，关系管理供方链"——基于证据的决策和关系管理。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'根据《质量管理体系 要求》GB/T 019001—2016，下列质量管理活动中，属于顾客导向过程的是（ ）。',options:['质量目标策划B.质量风险应对C.外部供应产品质量控制D.产品交付后的防护'],answer:[],analysis:'选项 A、B 属于管理过程；选项 C 属于支持过程。',memory:'【口诀】"ISO9001是要求，ISO9004是指南"——前者规定要求，后者提供改进指南。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'依据生命周期各阶段的环境影响作出评价，同时评估其中的影响因素的标准属于（ ）。',options:['基础标准', '管理标准', '组织评价标准', '产品评价标准'],answer:[3],analysis:'环境管理体系标准可分为组织评价标准和产品评价标准。组织评价标准主要针对各部门、车间进行的环境管理评价，重点分析组织的环境行为及其结果；产品评价标准主要依据生命周期各阶段的环境影响所作出的评价，重点评估产品在原材料购买、生产、使用、废弃等全生命周期的环境影响，同时还包括其中的影响因素评估。',memory:'【口诀】"职业健康安全：危险源辨识是前提"——先识别危险源，再评估风险。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'环境管理体系系列标准中的龙头标准是（ ）。',options:['《质量管理体系要求》GB/T19001—2016', '《环境管理体系通用实施指南》GB/T24004—2017', '《环境管理体系分阶段实施的灵活方法指南》ISO14005：2019', '《环境管理体系要求及使用指南》GB/T24001—2016'],answer:[3],analysis:'《环境管理体系要求及使用指南》GB/T24001—2016 是环境管理体系系列标准中的龙头标准，也是认证使用的唯一标准。',memory:'【口诀】"消除替代工程控，标志防护最后才用PPE"——控制层级：消除→替代→工程控制→标志→PPE。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'下列管理理念中，属于环境管理体系基本理念的是（ ）。',options:['以顾客为关注焦点', '应用过程方法', '有效管理资源', '注重关系管理'],answer:[2],analysis:'环境管理体系有如下基本理念：(1) 持续改进。(2) 法律合规。(3) 风险管理。(4) 绩效评估。(5) 沟通与参与。(6) 资源管理。(7) 培训和意识。',memory:'【口诀】"环境管理体系：环境因素识别先"——识别环境因素，确定重要环境因素。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'《环境管理体系要求及使用指南》GB/T24001—2016 中提到 “与组织的宗旨相关并影响其实现环境管理体系预期结果的能力问题”，这一概念指的是（ ）。',options:['领导作用', '组织的角色', '运行', '组织所处环境'],answer:[3],analysis:'组织所处环境是指与组织的宗旨相关、并影响其实现环境管理体系预期结果的能力问题。这些问题包括组织外部的环境状况，以及外部的文化、社会、政治、法律等问题和组织内部的特征或条件。',memory:'【口诀】"生命周期观点：从摇篮到坟墓"——考虑产品/服务整个生命周期的环境影响。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'根据《环境管理体系要求及使用指南》GB/T24001—2016，下列环境管理体系的核心内容中，属于运行部分内容的是（ ）。',options:['应急准备和响应（Kimmy真帅）', '持续改进', '风险应对措施', '监视、测量、分析和评价'],answer:[0],analysis:'运行会直接影响组织环境绩效和环境管理体系预期结果的实现。运行包括两方面内容：①运行策划和控制；②应急准备和响应。C 选项属于策划，D 选项属于绩效评价。',memory:'【口诀】"合规义务是底线，法律法规要遵守"——环境管理必须遵守的法律法规要求。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'下列关于环境管理体系的说法，错误的是（ ）。',options:['策划是一个持续进行的过程', '运行会直接影响组织环境绩效和环境管理体系预期结果的实现', '组织在环境管理体系过程中要始终不间断地进行监视、测量、分析和评价', '按体系标准性质分类，环境管理体系标准可分为基础标准、组织评价标准、管理标准和技术标准'],answer:[3],analysis:'策划是一个持续进行的过程，不但用于建立和实施环境管理体系，也用于保持和改进环境管理体系。运行会直接影响组织环境绩效和环境管理体系预期结果的实现。运行包括两方面内容：①运行策划和控制；②应急准备和响应。\n组织在建立、实施、保持和持续改进环境管理体系过程中，要始终不间断地对环境目标、重要环境因素、合规义务和运行控制等进行监视、测量、分析和评价，通过对其环境管理体系自我检查的内部审核和总体性评价，以及改进的管理评审，确保及时发现问题，采取措施，持续改进，更好地实现其环境管理体系的预期结果和有效性。环境管理体系标准可分为基础标准、管理标准和技术标准。',memory:'【口诀】"质量管理七原则：顾客领导全员，过程改进循证关系"——顾客关注、领导作用、全员参与、过程方法、改进、循证决策、关系管理。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'领导作用包括的内容有领导作用和承诺；组织的角色、职责和权限以及（ ）。',options:['法律合规（Kimmy真帅）', '环境方针', '环境评估', '资源管理'],answer:[1],analysis:'领导作用包括三方面内容：①领导作用和承诺；②环境方针；③组织的角色、职责和权限。',memory:'【口诀】"PDCA大环套小环，持续上升不断改"——PDCA循环的特点。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'环境管理体系的核心内容中，策划主要包括环境目标及其实现的策划和（ ）。',options:['应对风险和机遇的措施', '应急准备和响应', '信息交流', '内部审核'],answer:[0],analysis:'策划包括两方面内容：①应对风险和机遇的措施；②环境目标及其实现的策划。B 选项属于运行；C 选项属于支持；D 选项属于绩效评价。',memory:'【口诀】"过程四要素：输入输出活动资源"——每个过程都有输入、输出、活动和资源。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'环境管理体系的核心内容中，运行包括运行策划与控制以及（ ）。',options:['监视、测量、分析和评价', '内部审核', '应急准备和响应', '应对风险和机遇的措施'],answer:[2],analysis:'运行包括两方面内容：①运行策划和控制；②应急准备和响应。A、B 选项属于绩效评价；D 选项属于策划。',memory:'【口诀】"ISO14001环境：生命周期合规义务风险"——环境管理体系的关键要素。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'根据《职业健康安全管理体系 要求及使用指南》GB/T 45001—2020，建筑企业应界定职业健康安全管理体系的边界和适用性，以满足职业健康安全管理体系标准对（ ）的基本要求。',options:['支持和运行', '绩效评价', '领导作用', '组织所处环境'],answer:[3],analysis:'根据《职业健康安全管理体系 要求及使用指南》GB/T 45001—2020，组织应界定职业健康安全管理体系的边界和适用性，以满足标准对组织所处环境的基本要求。',memory:'【口诀】"职业健康：危险源辨识风险评价控制"——核心要素是识别、评价、控制。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'职业健康安全管理体系的生命力所在是（ ）。',options:['PDCA 动态循环、管理评审', '管理评审、持续改进', 'PDCA 动态循环、管理评审、持续改进', 'PDCA 动态循环、持续改进（Kimmy真帅）'],answer:[3],analysis:'PDCA动态循环、持续改进的管理模式，是职业健康安全管理体系的生命力所在',memory:'【口诀】"体系文件四层次：手册程序记录指导"——质量手册、程序文件、作业指导书、记录。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'组织是否进行职业健康安全管理体系认证审核取决于（ ）。',options:['组织的运行机制', '组织的管理机制', '组织的质量目标', '组织自身的意愿'],answer:[3],analysis:'组织是否根据职业健康安全管理体系标准建立和保持职业健康安全管理体系，是否进行职业健康安全管理体系认证审核都取决于组织自身的意愿。',memory:'【口诀】"内部审核查符合，管理评审查适宜"——内审核对标准，评审看是否适宜有效。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'职业健康安全管理体系的改进措施包括（ ）。',options:['纠正措施、持续改进', '纠正措施、完善措施', '预防措施、发展措施', '纠正措施、预防措施'],answer:[0],analysis:'“改进”包括事件、不符合和纠正措施；持续改进',memory:'【口诀】"持续改进三途径：审核评审纠正措"——内审、管理评审、纠正措施。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'《卓越绩效评价准则》GB/T 19580—2012 的实质是一种（ ）评价。',options:['标准化导向', '符合性', '合格性', '成熟度'],answer:[3],analysis:'《卓越绩效评价准则》GB/T 19580—2012 属于 “成熟度评价” 标准。质量管理体系标准属于 “符合性评价” 标准。',memory:'【口诀】"卓越绩效模式：远见卓识的领导"——11项核心价值观之一。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'根据《卓越绩效评价准则》，建筑企业实施卓越绩效管理，在组织驱动力层面应遵循的基本理念是（ ）。',options:['以战略统领组织的管理活动', '学习、改进与创新', '重视过程与关注结果', '确保组织中员工的发展和权益'],answer:[0],analysis:'说明组织驱动力的基本理念包括：远见卓识的领导；战略导向（以战略统领组织的管理活动，获得持续发展和成功）；顾客驱动。',memory:'【口诀】"顾客驱动的卓越，社会责任公民"——卓越绩效以顾客为中心，承担社会责任。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'下列关于全面一体化管理概念的说法，正确的是（ ）。',options:['全面一体化管理的目的是使领导满意及员工、相关方受益而达到长期成功的管理途径', '全面一体化管理的核心是质量管理', '全面一体化管理是当今企业管理的发展潮流，实施全面一体化管理，可以为建筑企业提供良好的管理环境', '全面一体化管理的基础是卓越绩效管理'],answer:[2],analysis:'以全面质量管理理论为基础；目的是使顾客满意及员工、相关方受益而达到长期成功的管理途径。核心内容都建立在管理学原理的基础上。标准均强调以领导作用为核心，将 PDCA 循环应用于所有过程，使整个管理体系按照 PDCA 模式运行。',memory:'【口诀】"战略导向未来，重视过程结果"——战略导向、过程与结果并重。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'建筑企业建立和实施质量、环境、职业健康安全一体化管理体系时，支持与运行过程需进行的工作有（ ）',options:['实施并保持沟通', '确定并提供资源', '创建、更新和控制成文信息', '持续改进', '管理评审'],answer:[0, 1, 2],analysis:'支持与运行过程需进行的工作有：支持与运行过程、确定并提供所需资源、确定并确保人员能力意识、实施并保持沟通创建、更新和控制成文信息、进行运行的策划和控制、应急准备和响应。',memory:'【口诀】"学习改进创新，系统管理整体"——学习型组织、持续改进创新、系统管理。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'《质量管理体系 要求》GB/T 19001—2016 中的三大过程分别是（ ）。',options:['领导导向过程', '顾客导向过程', '支持过程', '管理过程', '分析过程'],answer:[1, 2, 3],analysis:'《质量管理体系 要求》GB/T 19001—2016 中的三大过程：顾客导向过程、支持过程、管理过程。',memory:'【口诀】"尊重员工伙伴，关注成功价值"——尊重员工、关注合作伙伴和创造价值。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'当程序形成文件时，《质量管理体系 要求》GB/T 19001—2016 标准中分为要求保持和保留的成文信息，其中要求保持的成文信息有（ ）。',options:['质量管理体系的范围', '设计与开发输入', '质量方针', '质量目标', '不合格与纠正措施的证据'],answer:[0, 2, 3],analysis:'选项 B、E 属于需要保留的成本信息。（1）要求保持的成文信息：质量管理体系的范围、质量方针、质量目标。（2）要求保留的成文信息：设计与开发输入、不合格与纠正措施的证据等。',memory:'【口诀】"敏捷性灵活性，关注未来远见"——快速反应、关注未来。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'根据《质量管理体系 基础和术语》GB/T 19000—2016，质量管理体系七项原则的说法，正确的有（ ）。',options:['将活动作为相互关联、功能连贯的过程组成的体系来理解和管理', '各级领导建立统一的宗旨和方向，并创造全员积极参与实现组织的质量目标的条件', '全员积极参与', '基于数据和信息的分析和评价的决策', '以产品为关注焦点'],answer:[0, 1, 2, 3],analysis:'选项 E 错误，正确的表述应为 “以顾客为关注焦点”。',memory:'【口诀】"促进创新管理，基于事实决策"——创新是关键，决策要有数据支撑。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'质量管理的核心通常是指（ ）。',options:['过程控制', '领导作用', '关系管理', '全员参与', '持续改进'],answer:[0, 3, 4],analysis:'质量管理的核心通常是指过程控制、全员参与和持续改进。',memory:'【口诀】"社会责任公共责任，道德行为公益"——社会责任包括公共责任、道德行为和公益支持。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'根据《环境管理体系要求及使用指南》，领导作用在环境管理体系中处于核心地位，这里的 “领导作用” 包括（ ）。',options:['领导作用和承诺', '组织所处环境', '环境方针', '组织的角色、职责和权限', '相关方价值'],answer:[0, 2, 3],analysis:'领导作用与环境管理体系中的 “策划”“支持和运行”“绩效评价” 及 “改进” 四大部分均紧密联系，且处于核心地位。领导作用包括三方面内容：①领导作用和承诺；②环境方针；③组织的角色、职责和权限。',memory:'【口诀】"过程四要素：方法展开学习整合"——ADLI循环。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'根据《环境管理体系要求及使用指南》GB/T24001—2016，环境管理体系的基本理念包括（ ）。',options:['资源管理', '法律合规', '过程管理', '风险管理', '领导作用'],answer:[0, 1, 3],analysis:'环境管理体系有如下基本理念：(1) 持续改进。(2) 法律合规。(3) 风险管理。(4) 绩效评估。(5) 沟通与参与。(6) 资源管理。(7) 培训和意识。注意与质量管理体系的原则区分。',memory:'【口诀】"结果四要素：水平趋势对比整合"——LeTCI评价。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'在环境管理体系中，支持是指对整个环境管理体系的策划、运行、检查和改进等起支持作用的条款，它包括（ ）。',options:['资源', '能力', '组织的角色、职责和权限', '信息交流', '文件化信息'],answer:[0, 1, 3, 4],analysis:'支持是指对整个环境管理体系的策划、运行、检查和改进等起支持作用的条款。支持包括五方面内容：①资源；②能力；③意识；④信息交流；⑤文件化信息。',memory:'【口诀】"卓越绩效评价：过程+结果"——两大评分项。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'职业健康安全管理体系标准的系统化管理是通过（ ）三个方面实现。',options:['控制过程系统化', '风险管控系统化', '改进措施系统化', '管理过程系统化', '组织职责系统化'],answer:[1, 3, 4],analysis:'系统化管理机制：组织职责系统化、风险管控系统化、管理过程系统化',memory:'【口诀】"质量奖评审：资料评审现场评审"——两阶段评审。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'组织在应用职业健康安全管理体系标准时的要求有（ ）。',options:['依法依规', '风险优先', '员工参与', '应急评价', '持续改进'],answer:[0, 1, 2, 4],analysis:'要求：（1）依法依规。（2）风险优先。（3）员工参与。（4）持续改进：PDCA动态循环、持续改进的管理模式，是职业健康安全管理体系的生命力所在。',memory:'【口诀】"卓越绩效11价值观：领导顾客员工，过程未来创新，学习伙伴社会，系统敏捷事实"——11项核心价值观。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'卓越绩效模式中，在关注组织如何做正确的事时，需要强调的组成要素有（ ）。',options:['领导作用', '战略', '资源', '过程管理', '以顾客和市场为中心'],answer:[0, 1, 4],analysis:'选项 C、D 属于 “资源、过程、结果”，关注的是组织如何正确地做事，解决的是效率和效果业绩的问题，是从动的。',memory:'【口诀】"卓越绩效框架：领导战略顾客，资源过程结果"——七大类目。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'我国建筑企业已由粗放型发展转为精细化经营，未来发展的关键是全面发展，不断提高核心竞争力，实施卓越绩效管理的措施有（ ）。',options:['发挥领导带头作用，强化卓越意识', '坚持标准化导向，统领管理活动', '坚持顾客导向，提高顾客满意度', '履行企业责任，成为卓越企业公民', '重视过程管理，从多个维度关注结果'],answer:[0, 2, 4],analysis:'建筑企业实施卓越绩效管理的措施除了选项 A、C、E 外，还包括坚持战略导向，统领管理活动；履行社会责任，成为卓越企业公民。',memory:'【口诀】"领导三角：领导战略顾客市场"——领导、战略、顾客与市场。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'《卓越绩效评价准则》GB/T 19580—2012 将所关注的质量管理上升为经营管理的 “大质量” 管理，强调组织的（ ），体现了现代质量管理的最新理念和方法。',options:['企业责任', '战略策划', '经营结果', '社会责任', '经营过程'],answer:[1, 2, 3],analysis:'《卓越绩效评价准则》GB/T 19580—2012 将所关注的质量管理上升为经营管理的 “大质量” 管理，强调组织的战略策划、经营结果和社会责任，体现了现代质量管理的最新理念和方法。',memory:'【口诀】"结果三角：资源过程经营结果"——资源、过程管理、经营结果。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'建筑企业建立全面一体化管理体系至少应具备（ ）条件。',options:['确定了明确的方针目标', '基本完成全面一体化管理体系文件编制', '基本确定了管理体系的主要过程及其需要开展的主要活动', '明确了组织机构设置或调整的方案', '已完成组织职能的再分配'],answer:[2, 3, 4],analysis:'建筑企业建立全面一体化管理体系至少应具备以下条件：①初步确定了方针目标；②基本确定了管理体系的主要过程及其需要开展的主要活动；③明确了组织机构设置或调整的方案；④已完成组织职能的再分配。',memory:'【口诀】"测量分析改进：贯穿所有过程"——测量、分析与改进是链接。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'multi',question:'在全面一体化管理体系中，关于全面一体化管理体系文件编制原则的说法，正确的有（ ）。',options:['管理体系文件是由管理人员根据管理理念进行编订的', '管理体系文件的编制应基于企业正在开展的各项活动的现实情况', '以手册或其他文件形式表达管理体系的过程或核心要素之间的相互作用，并提供查询相关文件的途径', '在编制用于企业内部管理的文件时，对所必需的体系过程和活动应制定实施计划或方案并限期贯彻', '管理体系文件还是进行组织内部审核和外部评审的重要依据'],answer:[2, 3, 4],analysis:'管理体系文件是按照系统原理建立的有机整体，用以表述、规定和证实该体系的全部结构、过程和活动。编制管理体系文件必须遵循系统和协调一致的原则。全面一体化管理体系文件的编制应在管理体系分析的基础上进行。',memory:'【口诀】"过程评分四要素：ADLI方法展开学习整合"——方法、展开、学习、整合。',section:'2.1  质量、环境、职业健康安全管理体系'},
+  {type:'single',question:'风险管理原则轮中，核心是(    )。',options:['领导作用与承诺', '创造和保护价值', '持续改进', '风险评估'],answer:[1],analysis:'',memory:'【口诀】"结果评分四要素：LeTCI水平趋势对比整合"——水平、趋势、对比、整合。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'风险评估应系统地、循环地、协作性地开展，是(    )的整个过程。',options:['风险识别、风险分析和风险评价', '风险识别、风险分析和风险应对', '风险分析、风险评价和风险应对', '风险识别、风险分析和风险评估'],answer:[0],analysis:'风险评估是风险识别、风险分析和风险评价的整个过程。风险评估应系统地、循环地、协作性地开展，并充分考虑利益相关者的观点。本题正确答案是A选项。',memory:'【口诀】"质量奖申报：组织承诺自我评价材料申报"——申报流程。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'(    )和监督机构需确保将风险管理融入组织所有活动中。',options:['管理者代表', '项目经理', '最高管理者', '企业主要负责人'],answer:[2],analysis:'领导作用与承诺：最高管理层和监督机构需确保将风险管理融入组织所有活动中。',memory:'【口诀】"工程监理规范：三控两管一协调"——质量、进度、成本控制，合同、信息管理，组织协调。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'下列属于社会责任7项核心主题的是(    )。',options:['决策程序和结构', '工作中的基本原则和权力', '公平竞争', '劳工实践'],answer:[3],analysis:'',memory:'【口诀】"监理规划纲领性，实施细则操作性"——规划是纲领，细则是操作指导。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'下列关于社会责任与ESG(环境、社会、治理)异同之处的说法，错误的是(    )。',options:['均强调超越传统的财务或利润目标', '均关注环境、社会等具体细分内容，且两者有诸多重合', 'ESG传播属性更强，更注重口碑建立及品牌推广', '社会责任更加注重“性质”体现，多用来体现企业发展理念或价值导向'],answer:[2],analysis:'社会责任传播属性更强，更注重口碑建立及品牌推广，而ESG与投融资等关系更为密切。C选项说法错误。',memory:'【口诀】"监理规划总监编，技术负责人审批"——总监主持编制，企业技术负责人审批。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'风险管理的目的是(    )。',options:['持续改进', '风险识别', '风险评价', '创造和保护价值'],answer:[3],analysis:'风险管理的目的是创造和保护价值。',memory:'【口诀】"实施细则专业编，总监审批执行"——专业监理工程师编制，总监审批。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'下列关于风险管理框架说法错误的是(    )。',options:['最高管理层和监督机构需确保将风险管理融入组织所有活动中', '项目经理负责管理风险，监督机构负责监督风险管理', '改进计划和任务的实施，有助于加强组织的风险管理', '风险管理整合有赖于对组织结构及内外部环境的理解'],answer:[1],analysis:'B选项错误，最高管理层负责管理风险，监督机构负责监督风险管理。',memory:'【口诀】"监理日志每日记，月报定期向上报"——日志每日，月报定期。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'下列关于风险管理过程说法错误的是(    )。',options:['风险评估是风险识别、风险分析和风险评价的整个过程', '风险应对的目的是选择和实施风险处理方案', '监督和检查的目的是确保和提升风险管理过程设计、实施和结果的质量和成效', '监督和检查可提升与利益相关者的沟通质量，并为最高管理层和监督机构履行职责提供支持'],answer:[3],analysis:'D选项描述错误，报告是组织治理不可或缺的一部分，可提升与利益相关者的沟通质量，并为最高管理层和监督机构履行职责提供支持。',memory:'【口诀】"监理通知单：要求整改或停工"——发现问题的处理文书。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'下列选项中哪个不属于社会责任原则(    )。',options:['合乎道德的行为', '尊重利益相关方利益', '尊重人权', '社会投资'],answer:[3],analysis:'社会责任原则：(1)担责；(2)透明；(3)合乎道德的行为；(4)尊重利益相关方利益；(5)尊重法治；(6)尊重国际行为规范；(7)尊重人权。',memory:'【口诀】"工程暂停令：总监签发才有效"——总监理工程师签发。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'下列选项关于社会责任报告说法错误的是(    )。',options:['社会责任报告的编写和发布宜遵循“完整全面、客观准确、明确回应、及时可比、易读易懂、获取方便”的原则', '社会责任绩效信息仅包括可测量的结果', '企业可根据实际需要来决定编写和发布针对其整体的社会责任报告或单独针对其某一特定部分的社会责任专项报告', '社会责任绩效是指企业社会责任目标的实现程度'],answer:[1],analysis:'B错误，社会责任绩效信息既包括可测量的结果，也包括难以测量的绩效方面，如社会责任意识和态度、将社会责任融入组织、对社会责任原则的遵循等情况。',memory:'【口诀】"监理例会定期开，会议纪要须记录"——定期召开例会并记录。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'建筑企业应践行ESG 发展理念。这里的“ESG”分别指的是(    )。',options:['生态、社会、治理', '环境、社会、治理', '环境、监督、绿色', '生态、监督、绿色'],answer:[1],analysis:'ESG 是环境(Environmental)、社会(Social)、治理(Governance)的缩写，是从环境、社会和公司治理三个维度来衡量企业经营的可持续性与对社会价值观念的影响。',memory:'【口诀】"旁站监理关键部位，巡视检查日常"——旁站关键部位，巡视日常。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'multi',question:'下列属于社会责任核心主题“公平运行实践”议题的有(    )。',options:['反腐败', '公平营销', '在价值链中促进社会责任', '尊重产权', '公民和政治权力'],answer:[0, 2, 3],analysis:'核心主题“公平运行实践”的议题包括：①反腐败；②公平竞争；③在价值链中促进社会责任；④尊重产权。B选项属于“消费者问题”；E选项属于“人权”。本题正确答案是ACD。',memory:'【口诀】"见证取样送检，监理人员现场"——见证取样要现场见证。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'multi',question:'《风险管理指南》GB/T  24353—2022，下列属于风险管理原则的是(    )。',options:['结构化和全面性', '最佳可用信息', '人和文化因素', '领导作用', '持续改进'],answer:[0, 1, 2, 4],analysis:'《风险管理指南》GB/T  24353—2022第4章指出，有效的风险管理应遵循整合、结构化和全面性、定制化、包容性、动态性、最佳可用信息、人和文化因素、持续改进等原则，这些原则有助于组织应对不确定性对目标的影响',memory:'【口诀】"监理资料归档，工程竣工移交"——竣工后移交资料。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'multi',question:'《风险管理指南》GB/T  24353—2022第5章，下列属于框架要素有(    )。',options:['人和文化因素', '领导作用与承诺', '整合、设计', '实施', '评价和改进'],answer:[1, 2, 3, 4],analysis:'《风险管理指南》GB/T  24353—2022第5章列举的框架要素有领导作用与承诺、整合、设计、实施、评价和改进等。',memory:'【口诀】"监理规划内容：概况范围内容，目标程序方法，制度措施人员"——主要内容。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'multi',question:'下列关于风险应对说法正确的是(    )。',options:['风险应对的目的是选择和实施风险处理方案', '风险应对方案之间是相互排斥的，适用于所有情形', '采取风险应对的理由不仅要考虑经济因素，还宜考虑所有的组织义务、自愿性承诺和利益相关者的观点', '可依据组织目标、风险准则和可用资源选择风险应对方案', '应对计划要明确指明实施风险应对的顺序'],answer:[0, 2, 3, 4],analysis:'风险应对：风险应对的目的是选择和实施风险处理方案。选择最合适的风险应对方案，可在实现目标获得的潜在收益和付出的成本、耗费的精力或由此引发的不利后果之间进行权衡。风险应对方案之间不一定是相互排斥的，也不一定适用于所有情形。采取风险应对的理由不仅要考虑经济因素，还宜考虑所有的组织义务、自性承诺和利益相关者的观点。可依据组织目标、风险准则和可用资源选择风险应对方案。风险应对计划的目的是明确如何实施所选定的应对方案，以便相关人员了解应对计划，并监测计划实施进度。应对计划要明确指明实施风险应对的顺序。B选项错误，风险应对方案之间不一定是相互排斥的，也不一定适用于所有情形。',memory:'【口诀】"监理规划七内容：概况范围目标，内容程序方法，制度人员设施"——七项主要内容。',section:'2.2  风险管理与社会责任管理体系'},
+  {type:'single',question:'（ ）是组织为实现战略目标、获得收益而以一种综合协调方式对一组相关项目进行的管理。',options:['项目群管理', '项目组合管理', '单一项目管理', '组织管理'],answer:[0],analysis:'依据美国项目管理协会（PMI）的项目管理体系，项目管理分为单一项目管理、多项目管理（项目群管理、项目组合管理）。项目群管理：组织为实现战略目标、获得收益而以一种综合协调方式对一组相关项目进行的管理。项目组合管理：将若干项目或项目群与其他工作组合在一起进行有效管理，以实现组织的战略目标。项目组合中的项目或项目群之间没必要相互关联或直接相关。',memory:'【口诀】"实施细则四内容：特点流程要点方法"——专业工程特点、流程、控制要点、方法措施。',section:'2.3  项目管理标准体系'},
+  {type:'single',question:'根据《建设工程项目管理规范》规定的项目沟通管理程序，项目沟通管理首先应进行的工作是（ ）。',options:['分解项目实施目标', '制定项目沟通计划', '明确项目沟通内容', '分析项目相关方需求'],answer:[0],analysis:'项目沟通管理应按下列程序进行：①项目实施目标分解；②分析各分解目标自身需求和相关方需求；③评估各目标的需求差异；④制定项目沟通计划；⑤明确沟通责任人、沟通内容和沟通方案；⑥按既定方案进行沟通；⑦总结评价沟通效果。',memory:'【口诀】"监理文件三类：规划细则日志月报"——主要监理文件。',section:'2.3  项目管理标准体系'},
+  {type:'single',question:'根据《建设工程项目管理规范》规定的项目合同管理程序，合同管理首先应进行的工作是（ ）。',options:['合同订立', '合同评审', '合同实施计划', '合同实施控制'],answer:[1],analysis:'项目合同管理应遵循下列程序：合同评审→合同订立→合同实施计划→合同实施控制→合同管理总结。',memory:'【口诀】"监理三控：质量进度加投资"——三大控制目标。',section:'2.3  项目管理标准体系'},
+  {type:'single',question:'面对复杂多变的项目环境，项目管理的发展趋势是实施（ ）驱动型项目管理。',options:['价值', '资源', '技术', '组织'],answer:[0],analysis:'面对复杂多变的项目环境，价值驱动型项目管理是项目管理的发展趋势。',memory:'【口诀】"监理两管：合同信息都要管"——合同管理和信息管理。',section:'2.3  项目管理标准体系'},
+  {type:'single',question:'美国项目管理协会的项目管理标准是（ ）。',options:['组织能力基准', '项目管理系列标准', '个人能力基准', '项目管理知识体系'],answer:[3],analysis:'国际项目管理标准：（1）美国项目管理协会（PMI）：项目管理知识体系（PMBOK）。（2）国际项目管理协会（IPMA）：能力基准。个人能力：环境能力、行为能力、技术能力。组织能力：治理、管理、组织一致性、资源、人员能力。（3）国际标准化组织（ISO）：项目管理系列标准。',memory:'【口诀】"一协调：组织协调内外部"——组织协调工作。',section:'2.3  项目管理标准体系'},
+  {type:'single',question:'项目群是指（ ）。',options:['建设费用超过一亿美元的大项目', '一组相互关联且被协调管理的项目', '持续较长时间（如一年以上）的一系列相关任务的组合', '用于归集各项目的名词，以便每个项目都隶属于某个项目群'],answer:[1],analysis:'项目群是指为实现组织的战略目标、经营目标和收益提供优势，而被协调管理的一组相关项目群组件所形成的临时结构。其中，项目群组件是指组成项目群的项目、子项目群或其他相关工作。',memory:'【口诀】"安全生产管理：监理也有责"——监理的安全责任。',section:'2.3  项目管理标准体系'},
+  {type:'single',question:'关于概念之间从高到低的层次结构的说法，正确的是（ ）。',options:['组织战略、项目组合、项目群、项目', '项目组合、组织战略、项目群、项目', '项目群、项目组合、组织战略、项目', '组织战略、项目群、项目组合、项目'],answer:[0],analysis:'组织战略、项目组合、项目群、项目。',memory:'【口诀】"监理责任：审核审查检查报告"——监理的主要责任。',section:'2.3  项目管理标准体系'},
+  {type:'single',question:'项目组合管理的主要目标是（ ）。',options:['正确地完成某个项目', '正确地完成一系列相互关联的项目', '选择一系列正确的且相互关联的项目，并排定资源分配的优先顺序', '选择一系列正确的且不一定相互关联的项目，并排定资源分配的优先顺序'],answer:[3],analysis:'项目组合是指为实现组织的整体或部分战略目标，便于进行有效管理而组合在一起的项目、项目群及其他相关工作。例如，一个基础设施公司为实现其投资回报最大化战略目标，可将石油天然气、能源、水利、道路、铁道、机场等多个项目或项目群组合在一起。',memory:'【口诀】"施工标准化：质量安全加绿色"——施工标准化的三大方面。',section:'2.3  项目管理标准体系'},
+  {type:'single',question:'下列关于项目组合的说法，正确的是（ ）。',options:['一个组织通常只能有一个项目组合', '可以从项目组合中剔除现有的项目，也可以向其中增加新项目', '同一个项目组合中的项目都能得到一视同仁地对待', '项目组合中各项目之间应具有直接相关关系'],answer:[1],analysis:'项目组合管理可根据组织战略变化动态调整项目，可增删项目；项目组合中的项目不一定相互关联，也不会被一视同仁对待，组织可根据战略优先级分配资源。',memory:'【口诀】"标准体系：国家标准行业地方企业"——四级标准体系。',section:'2.3  项目管理标准体系'},
+  {type:'multi',question:'根据国际项目管理协会（IPMA）制定的个人能力基准包括（ ）。',options:['环境能力', '行为能力', '适应能力', '技术能力', '战略能力'],answer:[0, 1, 3],analysis:'国际项目管理协会（IPMA）的个人能力基准：环境能力、行为能力、技术能力。',memory:'【口诀】"强制性标准必须执行，推荐性标准自愿"——GB是强制，GB/T是推荐。',section:'2.3  项目管理标准体系'},
+  {type:'multi',question:'根据国际项目管理协会（IPMA）制定的组织的项目管理能力包括（ ）。',options:['PP&P 治理', 'PP&P 管理', 'PP&P 组织一致性', 'PP&P 资源', 'PP&P 共享'],answer:[0, 1, 2, 3],analysis:'根据国际项目管理协会（IPMA）的项目管理体系，组织的项目管理能力包括 PP&P 治理、管理、组织一致性、资源、人员能力。PP&P 是项目、项目群、项目组合。',memory:'【口诀】"工程建设标准：设计施工验收规范"——工程建设的主要标准。',section:'2.3  项目管理标准体系'},
+  {type:'multi',question:'根据《建设工程项目管理规范》GB/T 50326—2017，项目管理流程包括（ ）和收尾过程，各个过程之间相对独立，又相互联系。',options:['启动', '策划', '实施', '监控', '运行'],answer:[0, 1, 2, 3],analysis:'根据《建设工程项目管理规范》GB/T 50326—2017，项目管理流程应包括启动、策划、实施、监控和收尾过程。',memory:'【口诀】"企业标准最严格，高于国标行标"——企业标准应严于上级标准。',section:'2.3  项目管理标准体系'},
+  {type:'multi',question:'关于项目群及其管理的说法，正确的有（ ）。',options:['项目群经理负责项目群的整体绩效', '一个项目群应至少包含三个项目群组件', '项目群为利益相关方提供收益', '项目群可以是战略性或经营性的', '项目群收尾后方可实现无形收益'],answer:[0, 2, 3],analysis:'A 正确，项目群经理负责项目群及相关项目群组件的整体绩效；项目群管理团队负责单个或多个项目群组件或职能的绩效和实施。B 错误，一个项目群应至少包含两个项目群组件。C 正确，D 正确，项目群为利益相关方提供收益，并帮助实现战略目标或经营目标。E 错误，在项目群生命周期或项目群收尾后都有可能实现有形或无形的收益。',memory:'【口诀】"标准化法：标准分类管理"——《标准化法》规定标准分类。',section:'2.3  项目管理标准体系'},
+  {type:'multi',question:'项目群管理是指指导相互关联的项目群组件实现项目群目标和收益的一组协调性活动。下列关于项目群管理的先决条件和收益的说法，正确的有（ ）。',options:['项目群经理对整个项目群战略和项目群支持负责任', '项目群管理应从项目层面对每个项目进行合理性分析', '项目群管理在组织层级上，系统、程序与过程要达到一致', '在项目群收尾后可能实现无形的收益', '项目群管理可实现符合战略或运营目标的外部项目群收益'],answer:[2, 3, 4],analysis:'高层管理人员宜分配和确定项目群管理角色、职责和权限。关键角色和责任者包括：项目群发起人、项目群经理及项目群管理团队。项目群发起人对整个项目群战略和项目群支持负责任；项目群经理负责项目群及相关项目群组件的整体绩效；项目群管理团队负责单个或多个项目群组件或职能的绩效和实施。项目群是指为实现组织的战略目标、经营目标和收益提供优势，而被协调管理的一组相关项目群组件所形成的临时结构。其中，项目群组件是指组成项目群的项目、子项目群或其他相关工作。一个项目群应至少由两个项目群组件组成。(6) 项目群收尾。项目群可收尾的原因包括但不限于：①已实现项目群收益；②不再需要协调管理相关组件；③不可能或不需要实现原定收益。',memory:'【口诀】"团体标准是新类型，学会协会制定"——团体标准的制定主体。',section:'2.3  项目管理标准体系'},
+  {type:'multi',question:'根据《项目管理知识体系指南(第8版)》规定项目管理7个绩效域包括（ ）',options:['治理绩效域', '范围绩效域', '进度绩效域', '质量绩效域', '环境绩效域'],answer:[0, 1, 2],analysis:'项目管理7个绩效域：①治理绩效域；②范围绩效域；③进度绩效域；④财务绩效域；⑤相关方绩效域；⑥资源绩效域；⑦风险绩效域\n第3章  建设工程招标投标管理与合同管理',memory:'【口诀】"地方标准省制定，备案国家管理"——地方标准的制定和备案。',section:'2.3  项目管理标准体系'}
+];
+
+const PASSWORD = '6666';
+let currentIndex = 0, score = 0, revealed = false;
+let userAnswers = new Array(questions.length).fill(null);
+let feedbackList = [];
+const optLabels = 'ABCDEFGHIJ'.split('');
+
+let pwPassed = false;
+function checkPassword() {
+  const i = document.getElementById('pwInput'), e = document.getElementById('pwError');
+  if (i.value===PASSWORD) {
+    pwPassed = true;
+    document.getElementById('passwordOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+    init();
+  }
+  else { e.textContent='密码错误，请重新输入'; i.style.animation='shake 0.4s'; setTimeout(()=>i.style.animation='',400); }
+}
+function initPassword() {
+  document.body.style.overflow = 'hidden';
+  document.getElementById('pwInput').focus();
+  document.getElementById('pwInput').addEventListener('keydown', function(ev) { if (ev.key==='Enter') checkPassword(); });
+  document.getElementById('pwBtn').addEventListener('click', function() { checkPassword(); });
+}
+
+function init() {
+  const js=document.getElementById('jumpSelect');
+  questions.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 题`;js.appendChild(o);});
+  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();});
+  document.getElementById('totalNum').textContent=questions.length;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q=questions[currentIndex];
+  document.getElementById('questionCard').style.display='';
+  document.getElementById('finishCard').classList.remove('show');
+  document.getElementById('sectionTag').textContent=q.section||'';
+  document.getElementById('qBadge').textContent=q.type==='single'?'单选题':'多选题';
+  document.getElementById('qBadge').className='q-badge '+(q.type==='single'?'single':'multi');
+  document.getElementById('qNumber').textContent=`第 ${currentIndex+1} 题（共 ${questions.length} 题）`;
+  document.getElementById('qText').textContent=q.question;
+  document.getElementById('qScoreText').textContent=q.type==='single'?'1分':'2分';
+  document.getElementById('currentNum').textContent=currentIndex+1;
+  document.getElementById('progressBar').style.width=((currentIndex+1)/questions.length*100)+'%';
+  document.getElementById('jumpSelect').value=currentIndex;
+  const c=document.getElementById('optionsContainer');c.innerHTML='';
+  q.options.forEach((opt,i)=>{const d=document.createElement('div');d.className='option';d.innerHTML=`<div class="opt-label">${optLabels[i]}</div><div class="opt-text">${opt}</div><div class="opt-icon"></div>`;d.addEventListener('click',()=>toggleOption(i,d));c.appendChild(d);});
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='none';
+  if(userAnswers[currentIndex]!==null){revealed=true;showResult(false);}else{revealed=false;document.getElementById('confirmBtn').disabled=false;}
+}
+
+function toggleOption(index,div) {
+  if(revealed)return;const q=questions[currentIndex];
+  if(q.type==='single'){document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));div.classList.add('selected');userAnswers[currentIndex]=[index];}
+  else{div.classList.toggle('selected');const s=[];document.querySelectorAll('.option').forEach((el,i)=>{if(el.classList.contains('selected'))s.push(i);});userAnswers[currentIndex]=s.length>0?s:null;}
+  document.getElementById('confirmBtn').disabled=!userAnswers[currentIndex]||userAnswers[currentIndex].length===0;
+}
+
+function confirmAnswer() {
+  if(revealed){const a=userAnswers.every(a=>a!==null);if(a)showFinish();else nextQuestion();return;}
+  if(!userAnswers[currentIndex])return;revealed=true;showResult(true);
+}
+
+function showResult(isConfirm) {
+  const q=questions[currentIndex],ua=userAnswers[currentIndex].slice().sort(),ca=q.answer.slice().sort();
+  const ok=ua.length===ca.length&&ua.every((v,i)=>v===ca[i]);
+  if(isConfirm){if(ok)score+=q.type==='single'?1:2;else if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0){score+=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}}document.getElementById('scoreDisplay').textContent=score;}
+  document.querySelectorAll('.option').forEach((el,i)=>{el.classList.add('disabled');if(ca.includes(i)){if(ua.includes(i))el.classList.add('correct');else el.classList.add('reveal-correct');el.querySelector('.opt-icon').textContent='✓';}else if(ua.includes(i)){el.classList.add('wrong');el.querySelector('.opt-icon').textContent='✗';}});
+  if(ok){const p=q.type==='single'?1:2;document.getElementById('expAnswer').innerHTML=`<span style="color:#38a169">✓ 回答正确！+${p}分</span>`;}
+  else{let ps=0;if(q.type==='multi'&&ua.length>0){const w=ua.filter(a=>!ca.includes(a));if(w.length===0)ps=Math.round(ua.filter(a=>ca.includes(a)).length*0.5*10)/10;}document.getElementById('expAnswer').innerHTML=`<span style="color:#e53e3e">✗ 回答错误${ps>0?'（部分正确 +'+ps+'分）':''}。正确答案：${ca.map(a=>optLabels[a]).join('')}</span>`;}
+  document.getElementById('expAnalysis').innerHTML=`<div class="ea-title">📝 解析</div>${q.analysis}`;
+  if(q.memory){document.getElementById('expMemory').innerHTML=`<div class="em-title">💡 记忆技巧</div>${q.memory}`;document.getElementById('expMemory').style.display='block';}else{document.getElementById('expMemory').style.display='none';}
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('confirmBtn').textContent='下一题 ▶';document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='';
+  if(isConfirm){const a=userAnswers.every(a=>a!==null);if(a)document.getElementById('confirmBtn').textContent='查看结果 🎉';}
+}
+
+function nextQuestion() { if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} }
+
+function showFinish() {
+  document.getElementById('questionCard').style.display='none';
+  document.getElementById('finishCard').classList.add('show');
+  const t=questions.reduce((s,q)=>s+(q.type==='single'?1:2),0),w=[];
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();if(!(u.length===c.length&&u.every((v,j)=>v===c[j])))w.push(i+1);});
+  document.getElementById('finalScore').textContent=`${score} / ${t}`;
+  document.getElementById('finalDetail').textContent=`共${questions.length}题，答对${questions.length-w.length}题，答错${w.length}题`;
+  document.getElementById('reviewBtn').style.display=w.length>0?'':'none';
+}
+
+function resetQuiz() { currentIndex=0;score=0;revealed=false;userAnswers=new Array(questions.length).fill(null);feedbackList=[];document.getElementById('scoreDisplay').textContent='0';renderQuestion(); }
+
+function openReview() {
+  const l=document.getElementById('reviewList');l.innerHTML='';let h=false;
+  questions.forEach((q,i)=>{if(userAnswers[i]===null)return;const u=userAnswers[i].slice().sort(),c=q.answer.slice().sort();
+  if(!(u.length===c.length&&u.every((v,j)=>v===c[j]))){h=true;const d=document.createElement('div');d.className='review-item';d.innerHTML=`<div class="ri-q">${i+1}. ${q.question}</div><div class="ri-row ri-user">你的答案：${u.map(a=>optLabels[a]).join('')}</div><div class="ri-row ri-correct">正确答案：${c.map(a=>optLabels[a]).join('')}</div><div class="ri-kp">📝 ${q.analysis}</div>`;d.style.cursor='pointer';d.addEventListener('click',()=>{closeReview();currentIndex=i;renderQuestion();});l.appendChild(d);}});
+  if(!h)l.innerHTML='<div class="review-empty">🎉 全部正确，没有错题！</div>';
+  document.getElementById('reviewModal').classList.add('show');
+}
+function closeReview(){document.getElementById('reviewModal').classList.remove('show');}
+function openFeedback(){document.getElementById('feedbackText').value='';document.getElementById('feedbackModal').classList.add('show');}
+function closeFeedback(){document.getElementById('feedbackModal').classList.remove('show');}
+function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});closeFeedback();}
+function openFeedbackSummary(){const l=document.getElementById('feedbackSummaryList');l.innerHTML='';feedbackList.forEach(fb=>{const d=document.createElement('div');d.className='fb-item';d.innerHTML=`<div class="fb-q">第${fb.qIndex+1}题：${fb.question}</div><div class="fb-content">${fb.content}</div>`;l.appendChild(d);});document.getElementById('feedbackSummaryModal').classList.add('show');}
+function closeFeedbackSummary(){document.getElementById('feedbackSummaryModal').classList.remove('show');}
+
+initPassword();
+
+</script>
+</body>
+</html>

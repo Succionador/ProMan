@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>范工管理 - 在线答题系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .header .icon {
+      font-size: 60px;
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-size: 2.4rem;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .header p {
+      color: rgba(255,255,255,0.8);
+      font-size: 1.1rem;
+      margin-top: 10px;
+    }
+
+    .chapters {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .chapter-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      padding: 28px 24px;
+      text-decoration: none;
+      color: #333;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .chapter-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #b21f1f, #fdbb2d);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+
+    .chapter-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .chapter-num {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #b21f1f;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    .chapter-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #1a2a6c;
+      line-height: 1.5;
+    }
+
+    .chapter-arrow {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 1.2rem;
+      color: #ccc;
+      transition: color 0.3s ease;
+    }
+
+    .chapter-card:hover .chapter-arrow {
+      color: #b21f1f;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 60px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+      .chapters {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="icon">📚</div>
+      <h1>范工管理 - 在线答题系统</h1>
+      <p>建设工程项目管理 · 十章全覆盖 · 共 125 道精选习题</p>
+    </div>
+
+    <div class="chapters">
+      <a href="FGGL01.html" class="chapter-card">
+        <div class="chapter-num">第 1 章</div>
+        <div class="chapter-title">建设工程项目组织、规划与控制</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL02.html" class="chapter-card">
+        <div class="chapter-num">第 2 章</div>
+        <div class="chapter-title">建设工程项目管理相关体系标准</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL03.html" class="chapter-card">
+        <div class="chapter-num">第 3 章</div>
+        <div class="chapter-title">建设工程招标投标与合同管理</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL04.html" class="chapter-card">
+        <div class="chapter-num">第 4 章</div>
+        <div class="chapter-title">建设工程进度管理</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL05.html" class="chapter-card">
+        <div class="chapter-num">第 5 章</div>
+        <div class="chapter-title">建设工程质量管理</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL06.html" class="chapter-card">
+        <div class="chapter-num">第 6 章</div>
+        <div class="chapter-title">建设工程成本管理</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL07.html" class="chapter-card">
+        <div class="chapter-num">第 7 章</div>
+        <div class="chapter-title">建设工程施工安全管理</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL08.html" class="chapter-card">
+        <div class="chapter-num">第 8 章</div>
+        <div class="chapter-title">绿色建造及施工现场环境管理</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL09.html" class="chapter-card">
+        <div class="chapter-num">第 9 章</div>
+        <div class="chapter-title">国际工程承包管理</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+
+      <a href="FGGL10.html" class="chapter-card">
+        <div class="chapter-num">第 10 章</div>
+        <div class="chapter-title">建设工程项目管理智能化</div>
+        <div class="chapter-arrow">→</div>
+      </a>
+    </div>
+
+    <div class="footer">
+      <p>📖 <a href="https://github.com/Succionador/ProMan" target="_blank">查看源码 · GitHub</a></p>
+      <p style="margin-top:8px;">范工管理在线答题系统 · All Rights Reserved</p>
+    </div>
+  </div>
+</body>
+</html>

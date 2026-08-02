@@ -8,7 +8,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #2d3748; }
 .container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
-.top-bar { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+.top-bar { background: rgba(255,255,255,0.95); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 50; }
 .top-bar h1 { font-size: 18px; color: #4a5568; margin-bottom: 2px; font-weight: 600; }
 .top-bar .section-tag { font-size: 13px; color: #805ad5; font-weight: 500; margin-bottom: 14px; padding: 3px 10px; background: rgba(128,90,213,0.08); border-radius: 6px; display: inline-block; }
 .stats-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
@@ -19,8 +19,36 @@ body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: li
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
 .score-box { display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; padding: 8px 18px; border-radius: 10px; font-size: 16px; font-weight: 700; white-space: nowrap; }
 .score-box .label { font-weight: 400; font-size: 13px; opacity: 0.9; }
-.jump-select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #4a5568; background: #f7fafc; cursor: pointer; outline: none; transition: border-color 0.2s; }
-.jump-select:focus { border-color: #667eea; }
+/* 顶部工具区：错题本按钮 + 题号矩阵下拉（位于得分右侧） */
+.top-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+.tool-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: 2px solid #e2e8f0; background: #fff; color: #4a5568; white-space: nowrap; transition: all 0.2s; }
+.tool-btn:hover { border-color: #a3bffa; background: #f7faff; }
+.tool-btn b { font-size: 13px; padding: 1px 7px; border-radius: 12px; background: #edf2f7; color: #4a5568; }
+.tool-btn.wrong { color: #c53030; border-color: #fed7d7; }
+.tool-btn.wrong b { background: #fed7d7; color: #742a2a; }
+/* 题号矩阵下拉 */
+.nav-dropdown { position: relative; }
+.nav-trigger { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: 2px solid #e2e8f0; background: #f7fafc; color: #4a5568; white-space: nowrap; transition: all 0.2s; }
+.nav-trigger:hover { border-color: #a3bffa; background: #fff; }
+.nav-pop { display: none; position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; background: #fff; border-radius: 14px; padding: 14px 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.18); width: min(92vw, 460px); max-height: 60vh; overflow: auto; }
+.nav-pop.show { display: block; }
+.nav-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.nav-pop-title { font-size: 14px; font-weight: 700; color: #4a5568; }
+.nav-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #718096; }
+.nav-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; margin-right: 3px; vertical-align: -1px; }
+.q-grid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 5px; }
+.q-cell { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; user-select: none; border: 1px solid #cbd5e0; background: #cbd5e0; color: #4a5568; transition: transform 0.1s ease; }
+.q-cell:hover { transform: scale(1.08); }
+/* 做题状态：灰=未做 红=错 绿=对 黄=少选 */
+.q-cell.todo { background: #cbd5e0; color: #4a5568; border-color: #cbd5e0; }
+.q-cell.wrong { background: #fc8181; color: #742a2a; border-color: #fc8181; }
+.q-cell.correct { background: #48bb78; color: #fff; border-color: #48bb78; }
+.q-cell.partial { background: #f6e05e; color: #744210; border-color: #f6e05e; }
+.q-cell.active { outline: 2px solid #5a67d8; outline-offset: 1px; }
+/* 错题本弹窗内的重做按钮 */
+.mb-redo-modal { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: 2px solid #bee3f8; background: #ebf8ff; color: #2b6cb0; transition: all 0.2s; }
+.mb-redo-modal:hover { background: #dbeefe; }
+.mb-redo-modal:disabled { opacity: 0.4; cursor: not-allowed; }
 .question-card { background: rgba(255,255,255,0.97); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
 .q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
 .q-badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: white; }
@@ -134,9 +162,22 @@ body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: li
         <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
       </div>
       <div class="score-box"><span class="label">得分</span><span id="scoreDisplay">0</span></div>
-      <select class="jump-select" id="jumpSelect" title="跳转到指定题目"></select>
+      <div class="top-tools">
+        <button class="tool-btn wrong" id="mbViewBtn" onclick="openMistakeBook()" title="查看错题本（做错 + 少选）">📋 错题本 <b id="mbViewCount">0</b></button>
+        <div class="nav-dropdown">
+          <button class="nav-trigger" id="navTrigger" onclick="toggleNav()" title="题号导航（点击展开矩阵）">🧭 题号 <span id="navCur">1</span>/<span id="navTotal">126</span> ▾</button>
+          <div class="nav-pop" id="navPop">
+            <div class="nav-pop-head">
+              <span class="nav-pop-title">题号导航</span>
+              <span class="nav-legend"><i style="background:#cbd5e0"></i>未做<i style="background:#fc8181"></i>错<i style="background:#48bb78"></i>对<i style="background:#f6e05e"></i>少选</span>
+            </div>
+            <div class="q-grid" id="qGrid"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+  <!-- 题号导航与错题本已移至顶部状态栏（得分右侧） -->
   <div class="question-card" id="questionCard">
     <div class="q-header">
       <span class="q-badge" id="qBadge">单选题</span>
@@ -166,6 +207,7 @@ body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: li
     <div class="final-detail" id="finalDetail"></div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-secondary" id="reviewBtn" onclick="openReview()" style="margin:0">❌ 查看错题</button>
+      <button class="btn btn-secondary" onclick="openMistakeBook()" style="margin:0">📒 错题本</button>
       <button class="btn btn-secondary" id="feedbackSummaryBtn" onclick="openFeedbackSummary()" style="margin:0;display:none">⚠️ 反馈汇总</button>
       <button class="btn btn-primary" onclick="resetQuiz()" style="margin:0">🔄 重新做题</button>
     </div>
@@ -198,6 +240,21 @@ body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: li
       <button class="review-close" onclick="closeFeedbackSummary()">✕</button>
     </div>
     <div class="review-list" id="feedbackSummaryList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="mistakeModal">
+  <div class="review-modal">
+    <div class="review-header">
+      <h3>📒 错题本（错题 + 少选题）</h3>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="mb-redo-modal" id="mbRedoModal" onclick="redoMistakes()" title="重做全部错题">🔄 重做 <b id="mbRedoCount">0</b></button>
+        <button class="review-close" onclick="closeMistakeBook()">✕</button>
+      </div>
+    </div>
+    <div style="padding:10px 24px 0;display:flex;gap:8px;flex-wrap:wrap;">
+      <span id="mistakeStat" style="font-size:13px;color:#718096;font-weight:600;"></span>
+    </div>
+    <div class="review-list" id="mistakeList"></div>
   </div>
 </div>
 <script>
@@ -266,14 +323,14 @@ const questions = [
   {type:'multi',question:'下列关于工程质量监督的说法，错误的有（ ）。',options:['工程质量监督报告必须由工程质量监督负责人签认', '核验工程质量保证资料的目的是为了验证工程实体质量', '工程开工前，建设单位需申请办理工程质量监督手续', '工程质量监督机构应对工程质量保证资料进行逐一检查', '工程竣工验收工作之前工程质量监督机构应出具工程质量监督报告'],answer:[3, 4],analysis:'工程质量监督机构对工程质量保证资料是抽查而非逐一检查，故 D 错误；工程质量监督报告是在竣工验收合格后出具，而非验收前，故 E 错误。',section:'1.1  工程项目投资管理与实施'},
   {type:'multi',question:'工程质量监督机构参加竣工验收时，对现场验收重点监督的内容有（ ）。',options:['验收组织形式', '验收方法', '验收程序', '标准规定的执行情况', '观感质量检查'],answer:[0, 2, 3],analysis:'工程质量监督机构应参加建设单位组织的工程竣工验收，并对现场验收的组织形式、验收程序、执行标准规定等进行重点监督',section:'1.1  工程项目投资管理与实施'},
   {type:'multi',question:'下列关于项目后评价说法正确的是（ ）。',options:['项目后评价是工程全寿命期管理的延伸', '列入后评价年度计划的项目应开展外部评审工作', '项目后评价针对我国所有在建工程', '项目后评价一般包括定性和定量相结合方法', '重大社会民生项目可列入后评价年度计划中'],answer:[3, 4],analysis:'A错误：项目后评价是竣工验收和投产运营阶段的管理延伸，而非全寿命期管理的延伸。\nB错误：列入后评价年度计划的项目应开展自我总结评价，而非外部评审。\nC错误：项目后评价主要针对重大工程、新工艺、新设备项目，并非所有在建工程。',section:'1.1  工程项目投资管理与实施'},
-  {type:'multi',question:'BOT 项目运作流程包括（ ）。',options:['项目策划', '特许权协议', '融资安排', '开发建设', '项目移交'],answer:[3, 4],analysis:'BOT 项目运作流程如下：A.特许权协议，即社会资本方组建项目公司，从政府部门获得"特许权协议"，作为安排融资和项目开发建设的基础。B.融资安排，即项目公司以特许权协议为基础安排融资。C.开发建设，即由项目公司组织项目开发建设或发包给工程承包公司实施。D.项目经营，即由项目公司在特许经营期内负责项目运行、维修和保养，支付贷款本息并获得投资回报。E.项目移交，即由项目公司在特许经营期满后将项目移交给政府部门或其指定机构。',section:'1.1  工程项目投资管理与实施'},
-  {type:'multi',question:'下列关于项目的工程开工时间的说法，错误的有（ ）。',options:['设计中任何永久性工程破土开槽开始施工的时间', '既有建筑物拆除开始施工的时间', '铁路开始进行土方、石方工程的时间', '公路开始进行平整场地的时间', '施工队伍进场时间'],answer:[1, 2, 3, 4],analysis:'工程开工时间是指该工程设计文件中规定的任何一项永久性工程第一次正式破土开槽开始施工的时间。不需开槽的工程，正式开始打桩的时间就是开工时间。铁路、公路、水库等需要进行大量土石方工程的，以正式开始进行土方、石方工程的时间作为正式开工时间。',section:'1.1  工程项目投资管理与实施'},
-  {type:'multi',question:'关于 CM 模式在工程造价控制方面的价值，下列说法正确的有（ ）。',options:['CM 单位赚取总包与分包之间的差价', '与施工总承包相比，合同价更合理', '施工合同总价一次确定，有利于控制造价', '工程设计与施工的早期结合，减少设计变更，从而减少分包单位因设计变更而提出的索赔', 'CM 单位与分包单位或供货单位的合同价是保密的'],answer:[1, 3, 4],analysis:'A错误：CM 单位赚取的是代理费，而非总包与分包之间的差价。C错误：CM 模式的合同价通常在施工过程中逐步确定，而非一次确定。',section:'1.1  工程项目投资管理与实施'},
+  {type:'multi',question:'BOT 项目运作流程包括（ ）。',options:['项目策划', '特许权协议', '融资安排', '开发建设', '项目移交'],answer:[1, 2, 3, 4],analysis:'BOT 项目运作流程如下：A.特许权协议，即社会资本方组建项目公司，从政府部门获得"特许权协议"，作为安排融资和项目开发建设的基础。B.融资安排，即项目公司以特许权协议为基础安排融资。C.开发建设，即由项目公司组织项目开发建设或发包给工程承包公司实施。D.项目经营，即由项目公司在特许经营期内负责项目运行、维修和保养，支付贷款本息并获得投资回报。E.项目移交，即由项目公司在特许经营期满后将项目移交给政府部门或其指定机构。',section:'1.1  工程项目投资管理与实施'},
+  {type:'multi',question:'下列关于项目的工程开工时间的说法，错误的有（ ）。',options:['设计中任何永久性工程破土开槽开始施工的时间', '既有建筑物拆除开始施工的时间', '铁路开始进行土方、石方工程的时间', '公路开始进行平整场地的时间', '施工队伍进场时间'],answer:[1, 3, 4],analysis:'工程开工时间是指该工程设计文件中规定的任何一项永久性工程第一次正式破土开槽开始施工的时间。不需开槽的工程，正式开始打桩的时间就是开工时间。铁路、公路、水库等需要进行大量土石方工程的，以正式开始进行土方、石方工程的时间作为正式开工时间。',section:'1.1  工程项目投资管理与实施'},
+  {type:'multi',question:'关于 CM 模式在工程造价控制方面的价值，下列说法正确的有（ ）。',options:['CM 单位赚取总包与分包之间的差价', '与施工总承包相比，合同价更合理', '施工合同总价一次确定，有利于控制造价', '工程设计与施工的早期结合，减少设计变更，从而减少分包单位因设计变更而提出的索赔', 'CM 单位与分包单位或供货单位的合同价是保密的'],answer:[1, 3],analysis:'A错误：CM 单位赚取的是代理费，而非总包与分包之间的差价。C错误：CM 模式的合同价通常在施工过程中逐步确定，而非一次确定。',section:'1.1  工程项目投资管理与实施'},
   {type:'single',question:'业主方项目管理的进度目标是指(    )。',options:['项目竣工验收', '项目调试', '项目试生产', '项目交付使用'],answer:[3],analysis:'业主方项目管理是指站在业主角度，通过有效控制工程建设进度、质量和投资目标，最终实现工程项目的价值。其中，进度目标是指工程项目交付使用的时间目标。',section:'1.2  工程项目管理组织与项目经理'},
   {type:'single',question:'工程总承包方项目管理中，试运行经理应依据合同约定，负责组织或协助(    )编制试运行方案，并应按试运行执行计划和方案的要求落实相关的技术、人员和物资。',options:['施工项目经理', '项目监理机构', '项目发包人', '使用单位'],answer:[2],analysis:'试运行经理应依据合同约定，负责组织或协助项目发包人编制试运行方案，并应按试运行执行计划和方案的要求落实相关的技术、人员和物资。',section:'1.2  工程项目管理组织与项目经理'},
   {type:'single',question:'下列关于业主方项目管理的说法中，错误的是(    )。',options:['业主方项目管理是全过程的，包括工程项目投资决策、建设实施阶段和运营维护的各个环节', '对于大多数建设单位而言，自行进行项目管理往往存在很大的局限性', '建设单位完全可以依靠社会化的工程咨询单位，为其提供全过程的工程咨询服务', '工程监理单位接受建设单位委托，为其提供专业化服务也属于业主方项目管理'],answer:[0],analysis:'业主方项目管理是全过程的，包括工程项目投资决策和建设实施阶段各个环节，A选项错误。',section:'1.2  工程项目管理组织与项目经理'},
   {type:'single',question:'按照项目经理的权限不同，矩阵式组织结构可分为的三种形式是(    )。',options:['强矩阵式组织、线性矩阵式组织和弱矩阵式组织', '大矩阵式组织、中矩阵式组织和小矩阵式组织', '强矩阵式组织、职能矩阵式组织和弱矩阵式组织', '强矩阵式组织、中矩阵式组织和弱矩阵式组织'],answer:[3],analysis:'按照项目经理的权限不同，矩阵式组织结构又可分为三种形式：强矩阵式组织、中矩阵式组织和弱矩阵式组织。',section:'1.2  工程项目管理组织与项目经理'},
-  {type:'single',question:'某施工项目管理组织机构图如下，其组织形式是(    )。',options:['直线式', '直线职能式', '职能式', '矩阵式'],answer:[0],analysis:'直线式组织结构是一种最简单的组织结构形式。在这种组织结构中，各种职位均按直线垂直排列，项目经理直接进行单线垂直领导。',section:'1.2  工程项目管理组织与项目经理'},
+  {type:'single',question:'某施工项目管理组织机构图如下，其组织形式是(    )。<br><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAl4AAADbCAMAAACLHW/2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURf////Ly8tLS0sjIyMXFxcbGxtDQ0PX19c/Pz4GBgXh4eHl5eXp6em9vb4KCgtfX1/v7+/z8/OHh4Y2NjTExMVtbW3d3d3Nzc3R0dHV1dU1NTURERJiYmNra2iMjI4CAgLa2tqysrK6urrGxsWpqaj8/P4ODg8vLy9TU1EJCQqioqF5eXszMzENDQ8nJyaqqql9fX0FBQaenp11dXfr6+sfHx4mJiW1tbXZ2dnJyctnZ2f7+/uDg4MDAwKGhoYSEhHFxcYeHh62treXl5eLi4qOjo8rKyubm5rOzs3BwcKWlpf39/eTk5Le3t4aGhr+/v6CgoI6Ojrm5uefn5+np6fHx8fb29sPDwyUlJQEBAQsLCwUFBQICAgYGBgoKCgkJCQ8PDzg4OL29vff3909PTyQkJAcHBwgICBUVFVZWVs7Ozvj4+GJiYtXV1Xt7exEREQ0NDUxMTDo6OoWFhejo6CIiIicnJ3x8fE5OTioqKvPz8+/v7y4uLjU1NX5+fjc3NxoaGkZGRqKiotjY2N7e3tzc3MHBwbi4uG5ubuPj4+7u7rKysqmpqevr683NzbS0tEtLSyYmJh4eHiEhIRsbGy8vL2FhYZCQkJSUlJWVlZeXl5+fn1xcXFhYWIuLi319fZKSkrq6uo+Pj56enpOTk5ycnFdXVyAgID09PWNjY6ampvDw8EVFRRYWFgAAACwsLFpaWpaWlqSkpOzs7Nvb276+voyMjO3t7by8vPn5+bW1tTs7OzIyMisrKx8fHzMzM6urq9bW1mZmZp2dnWVlZfT09Lu7u5mZmdHR0TY2NmBgYJGRkdPT0x0dHUpKSt3d3cLCwq+vr1NTU4iIiMTExC0tLUlJSTQ0NFBQUH9/f1RUVJubmxISEoqKit/f3wMDA2xsbFlZWWlpaWhoaDw8PFVVVZqamgwMDBgYGAQEBA4ODjk5Oerq6kBAQBQUFBAQEBMTE2dnZ2RkZFJSUjAwMCgoKGtraz4+PrCwsFFRURwcHBcXFxkZGUhISCkpKUdHR2+FKnMAAAAJcEhZcwAAFxEAABcRAcom8z8AACvmSURBVHhe7Z1nXBRHH4DnaEeRciBNRYoICAgoReDoHY5eY/S1gCYKQpQSzZGQSBGQZotUAQGNgJxIFRMTUFECSBFjDYgQMRo0AUssMb6/vcaxCtwRDg+c54Me/9vd2Z19bmZ2ZnYXAAgEwjoYLm4e3pkBDw8fFr37EM6GX0BQaIYwR1hEVAy9/xAOBicuMVdSSnpGICM7b/4COfQRQDgYMS6phfIKijMCpUXKi1VU0UcA4WDE1ESW8KKDHIu6hoQmOgbhYMTURJZqoYMci7YO1GtGIaYmsowHHeRYlutCvWYUUC8IG4F6QdgI1AvCRqBeEDYyGb309A1WSEsJGcpIG8lKGOORiImpmbmFkbS0tJGMpZU1vWfdxlbRzt5BStpRdoGTmakNgWEjzi4qrmZu7kYenl56DOHxgXrNMFjSi4Dx9vbx9fET+mjlx6tW/2/Nx2vXrfdHnAlwkdqw8ZO1a9as+fSTTZsDg2gr+C/b4hQc8tmaVVuXbAsN4xcDAIcJ9/IK9/K2dlgR8fmG7TvWfiGtShydyjhAvWYYLOkVKfLlV1HqX3+zMzrG2N1VUTXWWDSOiJReQN1QfZemqqqqJnd8gkUibfndSRrJASCFXzVVNS1qTxKSXKLr3n379x749qBsuukuxQxFu8ysVJ9RiYwH1GuGwZJexGzdHEPXQ7q5at5+ebrb85cfDrSh1Gy2UlrUGjGoYHsKbXnewmwb4CeKfPQvOiKODHF6Rx/d9tV3x4rN8woBiCmJAbzJgaW05ScE6jXDYEkvxDBF1xQAeM2Pl5FWkz45UX4ynByukNpVSf5ACLec401dFleYbw3UcsLkxAhVsub0KjCoWiUO6JXUODubLjANUMoOhKXXrIVVvbBWrrUAuEeZLTq1q1o7ysON4kZFCD+5kgSgriCEqpevWhI3wJw20sYBu5w13wfSNiFmGiYOQNHiH858/uPnP23USGV+DhfUa4bBol6E3fWu9kBPQqABh2vwBUpKogHkuNPZsHNKVoqKVslHzhuSCzR84wVh4VyHi7n1iUBLonzZ0YJkO0qTX2xXWBMgpi/7+dszEV98/Xkz1Gv2Mim9xFpEUmMVv8+3d9Ju9SXHS+Z/SlqJQCL9uMILiYjxJZBIpNWXzjqDhrbiJjy/TkRbFXlZXzeR0+2x5wrsrTsudtR1usPKcfYySb1UUuWULidjSpKpejltkenKOpmZeTLfMkeWXHoRUq4syJ7zi2NypnBOV0cACNp1UqCGD9R15ly9tve6lId5NADtnbGAWxE27Wcvk9DLG4AikVTjeNkOnLo6Va+K7Vy0JVpobS8AgKorn/eN4zfjyH/4VFvqg6Bb17779bP5jmGGUfEKt+bc0u+W0MTQl58IqNcMg2W9tC0rAcgQSTV2sXDTG9FrjmodZYnGmhG9SnI1ffRM7KnftPoRAcAHpPRoG2rhKs2/+Pj2/1at+vT2NlXKJpgB6jXDYFEvIObvmu3u0RumaVzdpVq3nKaX053Lun39/f195zWuGlH6KoBcxm97bzarNF3JcOwXTlDut8hsbSR/wdOdAoCxk8ScvstnuwvSIhnHisYH6jXDYFGvxuAjfc13d2wO0wx2G2jQW76ci3LZV7Lz10/XIdzb+lECuWkPgMLi37d+9tl804vLfl+18v6qB9ssF5H787EX8nalOHvvLjV2aUkrjdxNZP7mH6jXDIM1vYL8/yA9iNKKFdluZ6fULQpKKqg3HjoJ214RbQgOFuXaZShILb2azLPig3tSANakvd7IXFstcdCH0sXvd/bhtT/m7j1Q9ujPv7757NhJpDufOaBeMwyW9PJ1sxy6s8JUD/BcsFfqysq6tYgvEkf+piIqhrZQxnZq26vRuBQAce2TdgDEZtRTmvcEonFa2Ir+4T7pFcM5j3d+PV/yrqwCfRBpQqBeMwxW9CKktAgOUj9HFlgcPnvNKpxasTnJuvQ0YjAYYmSVgBBFL1wdthGb4vpknzkWNHW7I532eICzL9l872l3K1lKjKaZPn3jTAH1mmGwohdezyaO2gwPjxJQSomtH272sCf/vXzH5xFnvvjiizNP9z4RJleOuBjLE3vPXBNU4CcCINdti5RupXWg0UWlXjORUuSB1mhEOiJs2s9aWNGLAh7LtdzJ41lJIgBE8z1H1cjBi0t++nrZw4cPlx3749ozctMeF1e0OPThnoqqasVo25OWNVnR0e6Fdo24Kj8AgDePbXZ0dGGWRGa07bkjWpHU8coJgXrNMFjXC5eo8oD0pBOZIEHwse3nQ2JBNTrVuynfMsyYQIjU/ohEIn3vIXuMRLr3d1E7uXFPiNe4TyKR9u2Q30Aibf3DMpXZa0eo1wyDdb3wWD6ngbRwSo1mnRqJ/IeLUaUPHFa10ierIkubKBVm34qX4/d0P1IRL4ohl1N4Zz+zc9mFim6tpoVHnBRaK2HpNUthXa/3CdRrhgH1grARqBeEjUC9IGwE6gVhI1AvCBuBj4+DsBGxVpHj5J7RGcHzg1CvGYWYcd5e1+o0h6klLS3p+aKktCnerIKn8JIu+v1skBkAwd78zxNLF08xD5dd+/yXnxc/RMf/Gw+XRXwuQb7nGzJTEEtNr/GYagqKhq/tSShIR8f/K+YtDZT7KiEzBT3v9hjjKabKZsEOI3W5OHT8vxLD/MRWCIeAJ0w5ACTluF7BA3T8v4PeecgHiYJGFzc6BoFMEQ66ljOntxYy04B6QdgI1AvCRqBeEDYC9YKwEagXhI1AvSBsBOoFYSNQLwgbgXpB2AjUC8JGoF4QNgL1grART51uVXQMwllgI3fPTEoD1A/JH47EoOOcDPPPp54l4Dwz09NbZiL5mcqL7wi25KPjHEt6ukQHOvtnO4krtglbCM9EHC0OPtbtF3ZExzkWI+WdAjbMPmVsdlCn9eSpZa7rzMTSoMsSHeNgJObs3RDP/MtnZgNi/F9ddx5MnInY2CQ6OyP/zhRq+dp0dzH/8pnZAK41dAs6BmETRMlhXubf6T0bwHGFaqBjEDYxeLSYB+oFYRNQLwgbgXpB2AjUC8JGoF4QNgL1grARqBeEjUC9IGwE6gVhI1AvCBuBekHYCNQLwkagXhA2AvWCsBGoF4SNQL0gbATqBWEjM1kvZt9EjsLk2DA6BGETdbrKXOjYjIFoLW7CIuI27fFzX4iHo+OTw7px1r9woJH1PB4hJXDPXatgZ3SYJZwbJ1mM/GfMfn756HdWefUnifT7P+joJHhVVvazVSR6n2Yby0MvsZ7HNP55RCI9KENHWeBVWdkTRex78suQ9FrnDquU6w6dR8cmRbnutY0Sxuh9mmUEqWydz3oe05E8P6xbjg6yQLnOtV/Tvd6TXn0P5NChacVFZ7Y/r4YQuX0vPzo4rSgsa5F7b3q938LDRcdy5rzReFIger3fN4m+R72UH7SiQ9NKkm6XPjo2u0D0er/vyHq+uKUK6jVLgXq9R6Be7AfqNYuBer1HoF7sh1P1wpe6GdjpIZ94CtTVRuLhLoaSGhoaGroazdJHrGnRSv18TxzyYbd6izZ2ZOlxgXph9A121SFnnz+9gn/EgspT26l5rON4MpYWjUw9+bwO+YC1yrdltj+aU/Ui2NTMLUGejIcr+i1PC/iEN5L1AXxC++8/2vTo0abPPvnnLl07uYvHu8nfX9m8w9VnZCtiepS13gnUy35gbibZGNvfZHaBxnAi5VGExiL/3ibn8a+flO2hr28SfXVOAPKBT3fb9nBaNEVOVM6aXAy8E47VyyS6n3xkgwMWJgBkGB4eJMdVLT0WxcXGxZk0RQvk2tOWjnG6cRr5vyPkxfIAhsMRN6kd2y+ol3P90Cnk/0in3lYA3C3SKBkabFCjKNcTF2cSXGIe1k5bOFZbXhv5307lxQCRlsdBYd+t21hML+HeglP1ArVJeQ2gJ1q6f7g3rGu7jEhyIjmslZuUQlkg2GwB9RMAMckepgBEdrqKVNjT5mKIeS0XklkUOfaoNdTL5/B2O5CoLds3rCxikCdzoyKOHG7NVaQ2O6pKMmxoC8daebgAgE0zkM+OpeVxSpJ5/3C/0IDqWD9ijtQLL+Y7yH9L+XTD8qUkUmjfI9Labv3DlF+WaleWW21kZaWPuJJEJqVAQ/RSN/AHID5HVmFkIwFNdz8tq/Ed++A+cL1wvpWt0cr1MVYbSKQnK/aRVm/X9xQnfxPcnXF4sLSy0sfaIT2dEkL0UuxOA+CKjrDVyC+WW8MJB8S0NETGau9ypF51TVKX9v3z2ZltvRXLt8m7GRmp9/iWkhsJgF/o6Z8LFy5cuHHfuiWZlbQVYtRzeSLPbxjgaxzZCL7R2P3mEczYB/dh64VrUNl/6cCfT1/3FSo9ltk1Z0WFnG9pEPmrGIFv10VsXLhw43cP/qihXz7FKtYcxsq0ZaiOPG21tuKJRx0AiY6ug2NUEhypl55xy/wT+/ZdF7BNDew+beNRQX56P3k3Sz0dX9xFuHm3WzMAj6GUyomdNReTn1nSC3IqPQkVPmMcN9QrduDqLz++bMtz12r1ULQ/eYtsDTmPsW5Sj8l5fPeyiH4jwFAa/N5pHpmKjlGU+pNC6a4QlzoAvA0NKsdwiCP1Qo6+PkHHDoD4LkXRdpn8AAAIeAAIOByOQRexwYZUH4An4IGo0/YdV930CMgCDMvw9UdDvdBBBtKkJU8B0NGlzpWY54qh5DF+dB7jKmM0awEgEEB7svzNpQ5BOFoe063RM5ZpGevtHZyql173z69utlit2CIOUkIKgZ7WyRjQOPAmdP3fr7ftOb5kyZIlSxf/ffzQdr7Gqu3fhz756MD/SL8sffj9+j/+WP9zWx71UgbqNb5eJ4+VbauxMiwPBhjzFoBvOhkI6kr2hK4/9mbbnp3kPH54bP5dKf1Gk65joXP3vlxLerrk4W9IHn/1RjaYthVj9/QLYynEqXqZFO97FZqTcGdL0qmBF33P61uEtADx5OK5T7498OurL79fv379+q9DX2/JbcUYG/4w9+l3B04c++K7iBM/PHny7S9LpKhX01CvcfXydtxf9lV5Qk5OfXX20WYrq0zBahBku/SHb59c+nXTmVByHv+xUydMExMrcm3uv98d+PfvE/v3n0Hy+MRiYVqno+9pkXh6Aw0Nh+pF1N/8W0J2tEWN5b+frFxJWvXFswtVuwk4X19caXRerjG5msTh9Or0CHhCXVAdX7S5Z1DrqVPOYr6+vr4BdVSnoF7j6eXLf3C98q0SmS6PHz5dTSLd/mjLaeNKHCHAVwyrHWXJx5jH+LoAvYaSsM6AGP8LPXpIHvvS8jjA72T6mHZxql4mJduVBXm9tLiS968XXra4WeV0LZbcZQxKV5z4ZcNwc3NzcbOMKe0iJvF5OjcAfEecR20E6jWuXvb1N57J+Hur8p0+8aXjzmO6Nzq9sZR+nLqQL0/sKW5ubt5yUDh+N3Vx79Mt/gDEHBk9xbi0wzBznAmDHKoX/0n1IqNWAKwrNhS1R3Wp7mqidtzhY/vPRLz85sCBbzaRfs2kdLXS+r2MC6xiRvXvQb3G00t0QclFR14AUqxuhplYymv5aVL6fgCwl/llISWPV6+1jKXqEavY7QCATf5yNYYxIJxWvqMLAEG0sgwNR+pFKNW35dU2CgTAdngBf7thhk2ITAz12MV2e9lbW1uH9/iZr6D/kCh6EcR7nyFdYfTjgXqNrRcek2rbkWTRAcCi4hatRPmuRMtePkoFAXCR5Dz2EuetGaLP1afohbcX1EH6fyh5rBebnxcL8N5x7WP0q3KkXjjvmEBRRaMmQLwl1EqMkznpkxYmooXaTbnCGoZu1W4eAExsu0NkkNEhGrHCViN/vMWHrRchRS6wIc2CBwQtl1HFJOYZlJ7qumGKGtzpKRnpS4xV7D4MgP3ymjzpbk9qzMS9IhUAUO0SSxUTDWfqVVka0LPciD/Ab3kaDlRJFwUAl4fn6OOoANuIB43xGRfpY47G6gYOKT0lynb+P1yTiam0J+IAwAfUeuaky0WO+ULCD1svfG1kkE2nhZ+efrKSL7DZbkkEvPM9SumFvS+RAOqqsxjHHLvrvW2UlKtVv3+izFdrjcGBRs/NRwbtK6tETs6oXnu8GMCZqBudqj5YQQTASyo/AGjqDJjQflp4bXcMIJi1LKK/a7Cqvivn63+HUn2DjG2LF3787y1xAEr9r39CWv1UgG9ku6P5sPUCODze+blRkv75BZEAlApYYoBxcXocvV3lMFAJQHK6In1c16Qz92Dovzn6RL12beWn9yIKTECP6yerLh345+UJFYbBuFFwpF5IzvRUPFse380n5jdg2GbgC8KV9Om/EHx1fo2E64oj7bSmKOCr2dDWrHMOyRt7p5zjGmneADSmhuzQvdxsVjWy0dF84HohF9yKvYX+uTx4rcI527b7gMjnHV702pEno0bCYEWGMb3WEy26+VpHowhpZFVabTl+qN4LhD8ffnz58vXNUgpjVREcq5d4vVRFAxaEG268/WUBumaP/5K09brLyN9agk+lxmhcjg3Uy9pB8BwXEfgInLj9uQD6vaA861eufU2e4UWhSeTEWWYnqdLhVL3wAeFy9lgAghqqT/OYoGv22g6H+EB6wx6AUuOOMQupMYF6BQ3KORMBEJMzPd3Rji6AfHjSFFS9R/7GxF1pYPyeKThVLyrj7tq4X04M1IsCc9nI3FJoOFwvdgL1Yj9Qr1kM1Os9AvViP1CvWQzU6z0C9WI/71Uvhruv3wMfhl5a6OC0sujhe9SL9X6UqSRNo+sDeHycJjo4rTi8P736PzEVG5wU4eEpKegYq1QSzW6qzPqHXwrtc6lDHzmrpISHo0NMkuLrvl5inMmGbMVoTeau05NCO9kBHWIZhQvb37iqovdpdoH3iXopYYo+clZJ005OQ8eYQ6E6ZG46bTridDPw8+sd8ybBjnnrrx3fM6lVGdix4Y9jTvSHVMxWzs1dugF95CyyY8+1H/ZMciMbfvujfmQe1fQSWBQiIzUJQgy/3Xd5hRA6zCqGsl1clLuSZzGp3UKy6ANnDUHD/n2vHPPQYeYwFMxVe092TR689PV4hvFsCFshiG+Yj55NMbsxfOw/U9+kNAPxeryTPrHuQ4BgdN0Fll7TBcHkAyu9oF7TCdQLwkagXhA2AvWCsBGoF4SNQL0gbATqBWEjUC8IG4F6QdgI1AvCRqBeEDYC9YKwEagXhI18cHoBmReetAfKQtjNh6eX7ONTDC9thLCVmanXYHxatf+k8Dv14mtXJVN0mDWqLyRxe439mkvICCmX36AfgDVJpnFedKqk5CSny88xDD1zR1gQHWYNIYvN8lc+nCmvYo2D4d6TotIr9fWxdiw6PAlSpvHXLBb/+d9ChjKTwVCmfHOCjKwsOs4SQspf3SmpRe/VrEVc/c6eo0c3T4Kjm7dt+vOFJDrMOhuKR79wga3UJR0o93dJmwyn06ysFBTQURY5ZXu13OzDufzk3R56fOj88GQ4X/xiQ/FZdJRVzvf9dGAaH7lQl/ZRLjo2raQYJSR/OKVX0jONFlVu3slR7c+DDrEMN1fzKoY3DrCb96+XxQell4XF6ToscXJgMOgI6/iCOber0XvFPurSPupCx6aVcMcVH5BeDrJCHejYNGN+H+o1W3GQkZrGk/tORKBesxao1zQD9ZpmoF6zF6jXNAP1mmagXrMXqNc0A/WaZqBesxeo1zQD9ZpmoF6zF6jXNAP1mmagXrOXD00vQvze9ztjotJIWPHDmbDvYsgBQ9r/cQ8IRAyTNBJr6xcK4H3R8bFpDJp4ojZeDItebUwIccpD7uJ16PDYEOkvMX/vNKL3bSJ8fbUTLNLqmMgdYsCE0+oJdUyfZgawIOT2aYCOvkXjOGd58IofD7OY5r7sC9RHR8fEjzt44rtVsO2qTO9AqsPmmyIudujwmPj5OaOTe180anWg924CuLm770jm202c3X68TYPo5NDUiuozncsj6DcN3y5qRUfRdGiljPUrruP3uJlTzCwHd977qX8YHR2b8rtKE77e4VSOJHq1MRm68++/y3LOo8NjonFU/rAvOsH3QpW75CH03k3A8PDxE79cPc9Edutcz0wZv/zCZt48iF6LCYb75pKuKqOjaHKa5cea0trofvmj15KHmOXF0m130LGx0f1+TZ74WGJTwOu13P9ZA73iWNy529b2YjM6Oibl835YIs8Zt+6mDT89xnw2U3mxZ89jdOwd6O5ZUx48/qtKBm+u2qCLXo8J7mxb9niiE35nz29feaATpII52Suo2ZjCLIPeg+jQOAQ5hIo0iKGTHAW+Mf2Skx56xbHxZmUHMKILzhtyxoWmtqNjPLESvYMTQH4/2cQENL3ut8OiU2SEYH30q5gg9HrMMBg+0R5U7lZz32mOTpEKpsii2xsdnDJS56uoTaAXMX3/KXRwysBarZDmDL3UpeXZ9xbf3ZuVuRvRQUZwiUcXs6+RgFG4KoCOUcFkCpvHooNTht8yleAJ9fouDR2cMgadlGU5Q69koznse8Ns4gtlrfFLL+dDv6Wgg1OGl9JrFXSMCtRreoB6sQGoFw2oFxuAetGAev1H3tW/NZ16vSv9WajXuw5zhuiFtdFvIO/+7lN2Y3bEjiDm5W+lXY9g5Sb3TotY1CvAmbuVnKyPG/fg+OshiA2aKpGTr1f0F33ng1w4U686L81UcjdVAE+H/cQvXcRF8nbWU/L5MNc7LWJNL5+qK4nkDyaewaXvsnUU+KA4BUVy6trPeSjroWFWL5vl80LI16+mv+T4jbu/ZEqfnyFRmRv2zscisaiXvdVjC/Iokta1y9UTDydhPH+ipf9L1Dst4ky9drto6FgjH+J2Lkmb+IEsWO43K1dSDnPhih70twis6aVWMD+a3KF9cmFU6/id/ciqXh6PqJm8dn4F+lsyzOoFwiUGkMNVuyXoQACA3/JcHShVsJh/ta2tbcflFzv2tLW1LTmUROsnG3S4KWxVn5xsNSAzVEDvdwka3E3/RbKoF6gtykA2blwoqKgHQGtuFpJpcdl3lra1tbVdv3x9HvL/EkNNSmK1hw/1KSLpHzEcMoikbIGv/+oGafpDXThTL4B170Y0cS6Zc44IQFVmdwqo8xN5/aatrW3b48cbkGw+vqfQhHrqfXjPa6hbJScrRs/p3y5ODulpDi25XNhDqypZ0wtwyScFAAA6JEI0AWj0z4tHagJuy7adDOnvfJ3VTq5ICOIX97g+T07WVvQQ7tMe2WSsQg/tNDOlV5CXnSp3rvy5eDVnJwFb0yZVhYxDUZWg1unFN99FRGz8Z82DV/sXRkT8/oMZbZh40LO/qF1OVDSOZ4GrLaXXrs7Lrj7JBNl5MqzoVeetaqdaEHVLoclaUd6smk8zPkvS0AuR3eDaPxERCyN+XfPZy4UREftfHTWllGy1br01VVWionFaA66F5Gk6BGf3v/fvfZMZSx0i4UC99Gr59fkvbs9KSrX2vHHLkz/w1LniITkQpHD2x30RERsv3bu36buFEREHFnYZ0/TSko1qiBMVreJ378qwJ4dM3P/+5t9niyqpDRjm9cJje3j4L8hb2rrFtedb1us36SuFPS4MAEDvQm/EpYiIjfu23nv048KIiJc/3qCcOYK4WbGSiahoTFV8vqsnfYu45PMdtNPMlF42F1+Stt5feZv0dI654NmfP7790XBSjFwjCIgcTEmpJHbcaLngHZmSMlhLn/0R2Xnm/qefrl279vbt68nktAheBd98dqedXqGzope12ULS1lUrb5P2S4UJ9YfeW71fx0rU2Ad5Rl/tYEpKZGX0DffA0sqUlMHSOkoCPvE/UdK/v/KqLblyJnqIqKV4aan0xlG2zoF6VT6/Rtr6v5W3SWW9liG98/9c+c9ds+CYWlDng4ywEIMtDTptSpGPjbTGL1Z/56q1yGF+Qgo9Sa45gpTyYzA2FwUuUn/ozOuFUxP8dNXHq1evJj1UEZDV+HzVJ9cE/WJ69ACow5DTl+u2VOyhpE85cQR7iU3/Q1JfS/pTmT5yXRfYd0aB5gFTekVqGbz4ujgkak6v7jm/6J0f35S4UKlXSR8p7SlaLsq4IjIc7nZTQ6LLtasmqi+Li1xQ44lX8h7qTE4vn1SPuz83h0SFJORkXSnZsWaeQfygWCW9IATgQlH8aFV89cvLawxcu2oE+vMDkYCe6GbdFACw6bp8lEPnQL2walm6Px8SitpukdPtZ9W89qHIokRcLb1p0Xir0I5xPeRUqvW/6O527aoJ6+viQZzDRwpssQaAt0aI+uRA5vUihHvOmf93Ql6U4PDZRW5FT18NXeT29d09chmnl32Ll3FNAGpt3zh6uFoa1MgKq4vTquPBgc2vq2lnlim9AAB2Bsj+NiU49VRtn2cM8GIMDb/W3ELV0e1AvJxTvzsxAOvjU+XQucueJmJ6SA/dKFb0QtLoUgMAyFkUtreHveEHeNyoBJ93W5kw/g1itZUXlAZgfTCxp5XcEgMAwAYO91oDgHN/xk+5kORAvZByuosH2beQAmOTgWXxAI9juEj3Ksp0Q5linebYNRiE9cE4e1odjsUCgK91PWsMQE+2bAxlCeb1QrDKQtqpi1ZUJ/Ln9GEBQYzx6rEyq+jCqIuqoNT8oeogbKNPJH/nIrtKytkstesecuSmnXFm9eqwbAe4QVV3DUnPzBt6RAdu8vUNhbf18jHff/9/P16/G7rw0bp7HxXvokR9u+dMWi+7sAZAqEytKN6cdksIU5fGk8h45Gi9Gj0+WnX/0rzN3298tO5ehK4nAIQAay8xAHwv9lELWs7Uq8qcF4DI1vqEeerqRiYg3jR2JI/e0guvV/Htp6t/33ln8dOydfcOXFZHqrgUezEA+C+qtFOWYU2vkkwfUJdoWnRd2lR+AMSl8TFOWXpLr56DZas/PnNnx7VLvz548INhFTnoX8MzoMzLql7+yhayIdluqmHNBgeXhAgfXc7Qz/GWXoQUgdCDxRrSRsV3JLf89nOvHyWMMRCatF48vY6yQkf8NWs0us4+lJK+6W4yjl74yNxQjWENC+niO+VbHl4bos+7CNAvkqC0gDlUrwajXkOpk/GpAzkqFn8nzHmcbzzSafe2Xo3uvx09r5sge17yUPGbJ7qKlLBPvGVYthZVBNb0yj4rKyuSzNvhqNx9fZ75wfP+jDmE1gsnd/DhkE6x4Yrmoxq6Py2LQoTGExUGvDr7eVjV68Ljv0grJW39OnOHTpBWr3xZyNAp85ZeuBTbliAA5Lj5dwNwwaOT2iPzX/S6cvQViXQ5uyNJQnkuaeXqsszBcfTC1SbXYABo1wqsBKDDQ5Hyu0Ku9wuyeKizTzhTr+DiH0mkpVmmLi2Ov90m3d56I3GkdnxLL4KPS5gNAM52mvYANHmUcJGjeu29fy1Feq/IsKbXrb/Xkn6V6fSrEJH8hnR/5fpqxi5LtF56PQXJAOhxcQcHAHxFkSeSm0TNXYEBi/p5WOqYAAC4SUVnnu+7u/Gvb2/I9KUtOOvPkPA79IpO9wV4BRGkgekpoUTdyn/RS18q++LZvjt7//oiROpsZ+GwAmZ8vXJLAbgQZsgFgKlEPU0vewURBdrvijP1ignJMns2pHPi0X6LqINO9cNOtSMZ+y69zE0A0K+RNgWAX8KJohfeNzZeIMyBWq2xpld0nrbrFuU3l/463tU/x19ARo1xous79FIHYLeTYDcR4Gzz45ECx7lQC4DDwvT5a8zqFb/dJDYjbGj9d8uWX8wAzt12DFPQ3qGXmUQk8DVzlBYFIK1bkdoO+C96mQrFJGa5Pgvd/73ZOQ9Q280z6hYUlF6EWvUub6C33MiRH4DDBsnG5Cg+Rbu7ntL3yLF6cQlxV2ZbGj1c+G1GiSsRFLj4jKuXgoAcAKcFn/kDoGUQzUf/xs88oYnyiSW9cLc8MNwSIuVPvstJyn0OduXHMo5Lva2XhC0AiQXKYaUAW1igUInMHpzXa5bd+9BwUSJlTSb1IiT3B6bmRrvxW9kGXsyL5JfXZ9jnsfTKLlBImSq9HM7qt9Zk+/M/d9fMFgwXld/FhF5OEg5eAFyg6VWrICw1kj2cqRfveYX2/AHPQJcj3FZGouEqDkzoldRt1TNaLzz21vHTlEYbS3oRu0NsXGoUeVSjO1NVsvCd3XET62WTvqAjgKZXVdc9yiBR6GlK6cmcXnistmFP1cnTXKIO6k3nhi3ubGB8Yv7benkPhO0GpWEFSPt/kUAJtXKavF74gCTpGPGTSXwxLiV8tsOOOW2jbxBGV46VZjfCATbXAGn0ecpHky8WsX4hZsYAN+hcSl6GI/XS87PgrTyiHWhcHa36fChh+Hgyw3Jv61X6XFAUEG5FBSNjsfK3UhFDKrrF8QBoz1tOuQGNFb3wlQXdRL+sXcGtyWn8rsPS884ydA+8rVdde9g5ABpk1SMBEFvgumgQAExwvVm02Yplgg7OFLuZ0ws3qDBAtD7nr8Zfb5s6oNvcbKHPUCsbF9iOlMsIhFKX5ABgnHCjtUPfuaOTBxm/QfZHIm9kf1nSi1B5Ias2pdBTjU/JXdNdR6d5xa5R88NPeyRRLwjJEHxOOWFAj4xg05UribxKfkiqdXZmLeIAiHe0UjKTE/XCR/Jm9ARUJLVynT6ib1Wse3AoieFmvdqsi1dGzVXBY/Wz7UG4ea+Wlql4qpJbLABiic/2yAGAV79cTzlMVvSqs3FSBJrZ3MF2Zp2qKpJbdFTiGM8Q8VbWLsa2mJiX+gVAcNO4pXaqSdzFQZOuXrURUl2Qd5w5vepirvASxI9caOWvj9Y8adgOiFc0RxaUS7el1vQ08HpiwL5zqLd7/z6JkYF8MYk8qmis6iVWxXNFz+tcPBdfp7vqEaMGgNXXYiwvFQqQanAEvJ4eGHR41i/x7++ulO5rgn2YATL2WN3dShGTI/Xq4d6FIdo+b+JSOKKvvYIHBPHTR+8AiFwwwIPqvRarAz6nZA96/LbVkDw2AXxbZc6HA2CfcZl6gz4revlw7WoFWoW8anbRSqo3cjHA+xT9mhvpTDyyoGPU3CZCHR7E3MrZLvhxqC3j4xccntHlYE6vAMU8ae1sqVM9qdqdWG8kzSQHPWxHwp3ycklJjdf/zp1fniMpeSfnfAl9CMNrQXH2Fe6LN6KGerORFQg2Tnc3/thmQCv2WNNrkbxFia2hQk+gVT2mEvltxFsFAFy4mQ6yAzmSf/y7fp6upGT5HV1pOxzl956SvWXAT+vcjRt9yrdEASitPnZAUkdS8nUO9aqGE/UC/q7ChfVS6j1cDk7exAbkgrnCR0wtj5LN13/5cvFm5Cglm1vod3ARlbYUuKmWyMuvOJ+viTQLTnUPlecMuaZRb85mRS/rc7JRDh4igXH6th2EWHsA9Mx4AQiKUSmXRNK//OUvf99F0i/XybWmFqoxN1YoaZlK3AgplrKibKXWv+/bb/7I46ckypxeifnnD1k4Juj7NLhnNJnEigbzCEpU1mrPfbRpU1nZpt8vvfynbFNZ2aNXGwWQQYXdPQ0xgcmOW5DBY2z0b38+RPr7cMFRZa++eXRHiXqwLOnllTV0SNjomalPjFNLqnhsTLBWXpgXwPXMebnpUVnZprIDlw78juzJX/+sTyMAH5OGGD5FWV1EpDr1petCbQGodbn62atNj359YkEtTTlRr1Lb3kPPZIee+7QrSVwxiTUODjQQ6sH4vaFk86tLL78hZ3PZvmKkpUm0ERVtdZA/6oasevryuiceSNVZdyp03T+LC2kbZ0EvPL+Ijq6h8o32Ws2iaDmTuODgtN7lviCAe8MmJNlNr15eIqe/adPLcjlAGIwLNuYtbA5Bilfx3I1lNynlp7PZmT9/fLDnAqWFy5ReMc+d7JyzzJdbA2LXL79u/XPdg623twViAxJ7yJiYmJhQPonvRkpv9zd/3f99nq0P2XCiuNOxGuQyr662p8ekJ5x2xceKXnFJTrz2R0QqxIFv/txH95D0Vy/l9gVitdR06TvQ44wFQH3epvtlr4/sJqfUaGO1TMQH4LH25O8TqUNjnKiXtYLTKe9k+cIGgCsJLSMf5u1vPX3qvKjHRj9KE/J83cNHX97/7O8ae3KFGWDvv+eZNzJ1wNc51sSa3g5iXi+cXb26XLBl7mkiEB9a+ODBn+u2rvnUyEQMBLydfrge2K3y88f/W6hTTa6MCLtjwo4lkXNWDGMTKx5r70upxpnSy5qvAQuaeNoDAN7U8tn5/v6hPuEjNmPK4VejfFB4AbnNg5zhlMJdAYy9CNSFWNArnC8YA4KvVGEB4DXoJaefkEWfsvYW3AW9zSsykCFwcvql0Rewb6fPgXrtbmpNAbEdMT4AcKU7Dvf3D/X31jSMeQt/60nHg30S3MhH5PD0tJ9TftCjYF4vQhy/HCDwqiYSANEqauhsf/+Qsix93thbNC4SOLtF0Ik+KKl2612nkym92AErerEDDtSLHTCv1yR522hGoF7vnZmt1/hAvd47UC82APWiAfViA1AvGlAvNgD1ogH1YgNQLxofql4ZFgajRvKmFLul5hPrtf8wOjhlYOp7ZThEL+mo0TMCppKUmxPrtfidt9FPCaVpV0XQMSqYjD5DrVIvthDe+PwP+QmfTljwjVlAOHrVqWG3WmYxp+iVkHA60hu9g1MDMfDNWe7x9Uq8+1NwI3q9qcE7palw6dh6HZ1vmN7NHvLPXxKaqPRqrFkjmYFecYrwyDvaxiGVo/aWJX0FuegdnBryhSIkGWd+vg0h8cWjqHz0elNDbk2IzrUwdIpUgjpULp+3EGYPRjpt0QzzyN+Nw2tdI/SKU4RjX7ms9rgPHZ02+PMP6bArmy3633Q5j/8rJoYdf8au5B2HioWT0AlSIfh0SHTXsIncmiz0nd1vI+5ekItecarIrYm3Hms8bXrxbcowQO/dVJEr0YK6s/ptuLMk2JbLBkXVo2a8MkLAkp9vzSZqxxyrpaMXyc4dII66B/n9gQ+oRO/aFFI5btWI4FuLXmfq8K6kPo+CA+GMsw+BQCAQCAQCgUAgEAgEAoFAIBDIe+H/s8/vQx9+spoAAAAASUVORK5CYII=" style="max-width:100%;border:1px solid #e2e8f0;border-radius:8px;margin-top:8px;" alt="组织机构图">',options:['直线式', '直线职能式', '职能式', '矩阵式'],answer:[0],analysis:'直线式组织结构是一种最简单的组织结构形式。在这种组织结构中，各种职位均按直线垂直排列，项目经理直接进行单线垂直领导。',section:'1.2  工程项目管理组织与项目经理'},
   {type:'single',question:'关于工程项目管理组织机构特点的说法，正确的是(    )。',options:['矩阵制组织中项目成员受双重领导', '职能式组织中指令统一且职责清晰', '直线式组织中可实现专业化管理强', '矩阵式组织中项目成员仅对职能经理负责'],answer:[0],analysis:'职能组织结构存在多头领导，使下级执行者接受多方指令，容易造成职责不清，B选项错误；直线式组织结构无法实现管理工作专业化，不利于提高项目管理水平，C选项错误；矩阵式组织结构中每一位成员同时受项目经理和职能部门经理的双重领导，D选项错误。本题正确答案是A。',section:'1.2  工程项目管理组织与项目经理'},
   {type:'single',question:'某公司为完成某大型复杂的工程项目，要求在项目管理组织机构内设置职能部门以发挥各类专家作用。同时从公司临时抽调专业人员到项目管理组织机构，要求所有成员只对项目经理负责，项目经理全权负责该项目。该项目管理组织机构宜采用的组织形式是(    )。',options:['直线式', '强矩阵式', '职能式', '弱矩阵式'],answer:[1],analysis:'强矩阵式组织中，项目经理由企业最高领导任命，并全权负责项目。项目经理直接向企业最高领导负责，项目部成员绩效完全由项目经理进行考核，项目部成员只对项目经理负责。',section:'1.2  工程项目管理组织与项目经理'},
   {type:'single',question:'下列关于工程项目管理组织机构形式的表述中，正确的是(    )。',options:['直线式组织结构中各职能部门的职责分明，但信息传递路线长', '职能式组织结构能够分别从职能角度对下级进行业务管理', '直线职能式组织结构中各职能部门可以直接下达命令，传递信息路线短', '矩阵式组织结构实现了集权和分权的最优组合，具有较强的稳定性'],answer:[1],analysis:'直线式组织机构中未设置职能部门，A选项错误；直线职能式组织结构中，职能部门只作为相应层级领导的参谋，在其所管辖业务范围内实施管理，不直接指挥下级，与下一层级职能部门构成业务指导关系，C选项错误；矩阵式组织结构的稳定性较差，尤其是业务人员的工作岗位调动频繁，D选项错误。本题正确答案是B选项。',section:'1.2  工程项目管理组织与项目经理'},
@@ -371,10 +428,12 @@ function initPassword() {
 }
 
 function init() {
-  const js=document.getElementById('jumpSelect');
-  questions.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 题`;js.appendChild(o);});
-  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();js.blur();});
+  buildNavGrid();
   document.addEventListener('keydown', handleKey);
+  document.addEventListener('click', (e) => {
+    const nd = document.querySelector('.nav-dropdown');
+    if (nd && !nd.contains(e.target)) closeNav();
+  });
   document.getElementById('totalNum').textContent=questions.length;
   loadState();
   renderQuestion();
@@ -392,13 +451,14 @@ function renderQuestion() {
   document.getElementById('qScoreText').textContent=q.type==='single'?'1分':'2分';
   document.getElementById('currentNum').textContent=currentIndex+1;
   document.getElementById('progressBar').style.width=((currentIndex+1)/questions.length*100)+'%';
-  document.getElementById('jumpSelect').value=currentIndex;
   const c=document.getElementById('optionsContainer');c.innerHTML='';
   q.options.forEach((opt,i)=>{const d=document.createElement('div');d.className='option';d.innerHTML=`<div class="opt-label">${optLabels[i]}</div><div class="opt-text">${opt}</div><div class="opt-icon"></div>`;d.addEventListener('click',()=>toggleOption(i,d));c.appendChild(d);});
   document.getElementById('explanation').classList.remove('show');
   document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='none';
   if(userAnswers[currentIndex]!==null){revealed=true;showResult(false);}else{revealed=false;document.getElementById('confirmBtn').disabled=false;}
   saveState();
+  updateNavGrid();
+  updateMistakeUI();
 }
 
 function toggleOption(index,div) {
@@ -425,13 +485,56 @@ function showResult(isConfirm) {
   document.getElementById('explanation').classList.add('show');
   document.getElementById('confirmBtn').textContent='下一题 ▶';document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='';
   if(isConfirm){const a=userAnswers.every(a=>a!==null);if(a)document.getElementById('confirmBtn').textContent='查看结果 🎉';}
+  updateNavGrid();
+  updateMistakeUI();
 }
 
 function nextQuestion() { if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} }
 
+// 题号矩阵导航：计算单题状态、构建网格、刷新颜色
+function qStatus(i) {
+  const ua = userAnswers[i];
+  if (ua === null) return 'todo';
+  const q = questions[i];
+  const a = ua.slice().sort((x,y)=>x-y), c = q.answer.slice().sort((x,y)=>x-y);
+  const ok = a.length===c.length && a.every((v,j)=>v===c[j]);
+  if (ok) return 'correct';
+  if (q.type==='multi' && a.length>0) {
+    const wrong = a.filter(v=>!c.includes(v));
+    if (wrong.length===0) return 'partial'; // 少选（只选了部分正确项）
+  }
+  return 'wrong';
+}
+function buildNavGrid() {
+  const grid = document.getElementById('qGrid');
+  grid.innerHTML = '';
+  document.getElementById('navTotal').textContent = questions.length;
+  questions.forEach((_, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'q-cell';
+    cell.textContent = i + 1;
+    cell.addEventListener('click', () => { currentIndex = i; renderQuestion(); closeNav(); });
+    grid.appendChild(cell);
+  });
+}
+function updateNavGrid() {
+  const grid = document.getElementById('qGrid');
+  const cells = grid.children;
+  for (let i = 0; i < cells.length; i++) {
+    cells[i].className = 'q-cell ' + qStatus(i) + (i === currentIndex ? ' active' : '');
+  }
+  document.getElementById('navCur').textContent = currentIndex + 1;
+}
+function toggleNav() {
+  const pop = document.getElementById('navPop');
+  pop.classList.toggle('show');
+  if (pop.classList.contains('show')) updateNavGrid();
+}
+function closeNav() { document.getElementById('navPop').classList.remove('show'); }
+
 // 键盘快捷键：字母选答案、Enter 提交/下一题、←/→ 翻题
 function isModalOpen() {
-  return ['feedbackModal','reviewModal','feedbackSummaryModal'].some(id=>document.getElementById(id).classList.contains('show'));
+  return ['feedbackModal','reviewModal','feedbackSummaryModal','mistakeModal'].some(id=>document.getElementById(id).classList.contains('show'));
 }
 function handleKey(e) {
   if(!pwPassed) return;
@@ -478,6 +581,64 @@ function closeFeedback(){document.getElementById('feedbackModal').classList.remo
 function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});saveState();closeFeedback();}
 function openFeedbackSummary(){const l=document.getElementById('feedbackSummaryList');l.innerHTML='';feedbackList.forEach(fb=>{const d=document.createElement('div');d.className='fb-item';d.innerHTML=`<div class="fb-q">第${fb.qIndex+1}题：${fb.question}</div><div class="fb-content">${fb.content}</div>`;l.appendChild(d);});document.getElementById('feedbackSummaryModal').classList.add('show');}
 function closeFeedbackSummary(){document.getElementById('feedbackSummaryModal').classList.remove('show');}
+
+// ===== 错题本：收集错题/少选题，支持查看和重做 =====
+function getMistakes() {
+  const w=[], p=[];
+  questions.forEach((q,i)=>{
+    if(userAnswers[i]===null) return;
+    const u=userAnswers[i].slice().sort(), c=q.answer.slice().sort();
+    if(u.length===c.length && u.every((v,j)=>v===c[j])) return; // correct
+    // check if partial (multi, only selected subset of correct)
+    if(q.type==='multi' && u.length>0 && u.filter(a=>!c.includes(a)).length===0) p.push(i);
+    else w.push(i);
+  });
+  return {wrong:w, partial:p, all:[...w,...p]};
+}
+function updateMistakeUI() {
+  const m=getMistakes();
+  document.getElementById('mbViewCount').textContent=m.all.length;
+  const rc=document.getElementById('mbRedoCount');
+  if(rc) rc.textContent=m.all.length;
+  const rb=document.getElementById('mbRedoModal');
+  if(rb) rb.disabled = m.all.length===0;
+}
+function openMistakeBook() {
+  const m=getMistakes();
+  const l=document.getElementById('mistakeList'); l.innerHTML='';
+  document.getElementById('mistakeStat').textContent=`共 ${m.all.length} 道错/少选题（${m.wrong.length}错 + ${m.partial.length}少选）`;
+  m.all.forEach(i=>{
+    const q=questions[i], u=userAnswers[i].slice().sort(), c=q.answer.slice().sort();
+    const isPartial = m.partial.includes(i);
+    const d=document.createElement('div');
+    d.className='review-item';
+    d.style.borderColor=isPartial?'#f6e05e':'#fc8181';
+    d.style.background=isPartial?'#fffff0':'#fff5f5';
+    d.innerHTML=`<div class="ri-q" style="font-size:14px;"><b>第${i+1}题</b> ${isPartial?'🟡少选':'🔴做错'} · ${q.type==='single'?'单选':'多选'}</div><div class="ri-q">${q.question}</div><div class="ri-row ri-user">你的答案：${u.map(a=>optLabels[a]).join('')}</div><div class="ri-row ri-correct">正确答案：${c.map(a=>optLabels[a]).join('')}</div>${q.analysis?`<div class="ri-kp" style="font-size:13px;color:#2c5282;background:#ebf8ff;padding:8px 12px;border-radius:6px;margin-top:6px;">📝 ${q.analysis}</div>`:''}`;
+    d.addEventListener('click',()=>{closeMistakeBook();currentIndex=i;renderQuestion();});
+    l.appendChild(d);
+  });
+  if(m.all.length===0) l.innerHTML='<div class="review-empty">🎉 暂无错题，继续加油！</div>';
+  document.getElementById('mistakeModal').classList.add('show');
+}
+function closeMistakeBook(){document.getElementById('mistakeModal').classList.remove('show');}
+function redoMistakes() {
+  const m=getMistakes();
+  if(m.all.length===0){alert('没有需要重做的错题！');return;}
+  closeMistakeBook();
+  // 只重置错题的答案，保留做对的
+  m.all.forEach(i=>{
+    userAnswers[i]=null;
+    // 扣回该题分数
+    const q=questions[i];
+    const pts=q.type==='single'?1:2;
+    score=Math.max(0, score-pts); // 简化扣分
+  });
+  document.getElementById('scoreDisplay').textContent=score;
+  saveState();
+  currentIndex=m.all[0]; // 从第一道错题开始
+  renderQuestion();
+}
 
 initPassword();
 </script>

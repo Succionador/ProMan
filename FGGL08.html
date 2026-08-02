@@ -53,7 +53,9 @@ body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: li
 .explanation .exp-answer span { font-weight: 700; }
 .explanation .exp-analysis { font-size: 14px; color: #2c5282; margin-top: 10px; line-height: 1.7; padding: 10px 14px; background: #ebf8ff; border-radius: 8px; border-left: 3px solid #4299e1; }
 .explanation .exp-analysis .ea-title { font-weight: 700; color: #2b6cb0; }
-.btn-area { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
+.btn-area { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; align-items: center; }
+.key-hint { font-size: 13px; color: #a0aec0; margin-right: auto; user-select: none; letter-spacing: 0.2px; }
+.key-hint b { color: #718096; font-weight: 700; }
 .btn { padding: 12px 32px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
 .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
@@ -145,6 +147,7 @@ body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: li
     <div class="options" id="optionsContainer"></div>
     
     <div class="btn-area">
+      <span class="key-hint" id="keyHint">⌨️ 按 <b>A/B/C…</b> 选择 · <b>Enter</b> 提交/下一题 · <b>←/→</b> 翻题</span>
       <button class="btn btn-secondary" id="feedbackBtn" style="display:none" onclick="openFeedback()">⚠️ 题目/答案反馈</button>
       <button class="btn btn-primary" id="confirmBtn" onclick="confirmAnswer()">确定</button>
     </div>
@@ -246,6 +249,23 @@ const PASSWORD = '6666';
 let currentIndex = 0, score = 0, revealed = false;
 let userAnswers = new Array(questions.length).fill(null);
 let feedbackList = [];
+
+// ===== 断点续做：用 localStorage 保存/恢复做题进度（按章节 pathname 区分）=====
+const STORAGE_KEY = 'proman_progress_' + (location.pathname||'page').replace(/[^a-zA-Z0-9]/g,'_');
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({currentIndex, score, userAnswers, feedbackList})); }catch(e){} }
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const s = JSON.parse(raw);
+    if(!s || !Array.isArray(s.userAnswers) || s.userAnswers.length !== questions.length) return false;
+    currentIndex = s.currentIndex|0; score = s.score|0; userAnswers = s.userAnswers;
+    feedbackList = Array.isArray(s.feedbackList) ? s.feedbackList : [];
+    document.getElementById('scoreDisplay').textContent = score;
+    return true;
+  }catch(e){ return false; }
+}
+function clearState(){ try{ localStorage.removeItem(STORAGE_KEY); }catch(e){} }
 const optLabels = 'ABCDEFGHIJ'.split('');
 
 let pwPassed = false;
@@ -269,8 +289,10 @@ function initPassword() {
 function init() {
   const js=document.getElementById('jumpSelect');
   questions.forEach((_,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`第 ${i+1} 题`;js.appendChild(o);});
-  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();});
+  js.addEventListener('change',()=>{currentIndex=parseInt(js.value);renderQuestion();js.blur();});
+  document.addEventListener('keydown', handleKey);
   document.getElementById('totalNum').textContent=questions.length;
+  loadState();
   renderQuestion();
 }
 
@@ -292,6 +314,7 @@ function renderQuestion() {
   document.getElementById('explanation').classList.remove('show');
   document.getElementById('confirmBtn').style.display='';document.getElementById('feedbackBtn').style.display='none';
   if(userAnswers[currentIndex]!==null){revealed=true;showResult(false);}else{revealed=false;document.getElementById('confirmBtn').disabled=false;}
+  saveState();
 }
 
 function toggleOption(index,div) {
@@ -299,6 +322,7 @@ function toggleOption(index,div) {
   if(q.type==='single'){document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));div.classList.add('selected');userAnswers[currentIndex]=[index];}
   else{div.classList.toggle('selected');const s=[];document.querySelectorAll('.option').forEach((el,i)=>{if(el.classList.contains('selected'))s.push(i);});userAnswers[currentIndex]=s.length>0?s:null;}
   document.getElementById('confirmBtn').disabled=!userAnswers[currentIndex]||userAnswers[currentIndex].length===0;
+  saveState();
 }
 
 function confirmAnswer() {
@@ -321,6 +345,30 @@ function showResult(isConfirm) {
 
 function nextQuestion() { if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} }
 
+// 键盘快捷键：字母选答案、Enter 提交/下一题、←/→ 翻题
+function isModalOpen() {
+  return ['feedbackModal','reviewModal','feedbackSummaryModal'].some(id=>document.getElementById(id).classList.contains('show'));
+}
+function handleKey(e) {
+  if(!pwPassed) return;
+  if(isModalOpen()) return;
+  if(document.getElementById('finishCard').classList.contains('show')) return;
+  const q = questions[currentIndex];
+  const k = e.key;
+  if(/^[a-j]$/i.test(k)) {
+    const idx = optLabels.indexOf(k.toUpperCase());
+    if(idx>=0 && idx<q.options.length) {
+      const divs = document.querySelectorAll('.option');
+      if(divs[idx]) toggleOption(idx, divs[idx]);
+    }
+    e.preventDefault();
+    return;
+  }
+  if(k==='Enter') { e.preventDefault(); confirmAnswer(); return; }
+  if(k==='ArrowLeft')  { e.preventDefault(); if(currentIndex>0){currentIndex--;renderQuestion();} return; }
+  if(k==='ArrowRight') { e.preventDefault(); if(currentIndex<questions.length-1){currentIndex++;renderQuestion();} return; }
+}
+
 function showFinish() {
   document.getElementById('questionCard').style.display='none';
   document.getElementById('finishCard').classList.add('show');
@@ -331,7 +379,7 @@ function showFinish() {
   document.getElementById('reviewBtn').style.display=w.length>0?'':'none';
 }
 
-function resetQuiz() { currentIndex=0;score=0;revealed=false;userAnswers=new Array(questions.length).fill(null);feedbackList=[];document.getElementById('scoreDisplay').textContent='0';renderQuestion(); }
+function resetQuiz() { currentIndex=0;score=0;revealed=false;userAnswers=new Array(questions.length).fill(null);feedbackList=[];document.getElementById('scoreDisplay').textContent='0';clearState();renderQuestion(); }
 
 function openReview() {
   const l=document.getElementById('reviewList');l.innerHTML='';let h=false;
@@ -343,7 +391,7 @@ function openReview() {
 function closeReview(){document.getElementById('reviewModal').classList.remove('show');}
 function openFeedback(){document.getElementById('feedbackText').value='';document.getElementById('feedbackModal').classList.add('show');}
 function closeFeedback(){document.getElementById('feedbackModal').classList.remove('show');}
-function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});closeFeedback();}
+function submitFeedback(){const t=document.getElementById('feedbackText').value.trim();if(!t)return;feedbackList.push({qIndex:currentIndex,question:questions[currentIndex].question,content:t});saveState();closeFeedback();}
 function openFeedbackSummary(){const l=document.getElementById('feedbackSummaryList');l.innerHTML='';feedbackList.forEach(fb=>{const d=document.createElement('div');d.className='fb-item';d.innerHTML=`<div class="fb-q">第${fb.qIndex+1}题：${fb.question}</div><div class="fb-content">${fb.content}</div>`;l.appendChild(d);});document.getElementById('feedbackSummaryModal').classList.add('show');}
 function closeFeedbackSummary(){document.getElementById('feedbackSummaryModal').classList.remove('show');}
 
